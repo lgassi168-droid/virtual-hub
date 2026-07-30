@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Hub | Professional Network Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ec4899;
+            --primary-hover: #db2777;
+            --bg-color: #0b0b12;
+            --panel-bg: #13131f;
+            --canvas-bg: #0f0f18;
+            --text-main: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: #27273a;
+            --accent-red: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 15px; user-select: none; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .lang-btn { background: #4c0519; border: 1px solid var(--primary); color: #fbcfe8; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        .lang-btn:hover { background: var(--primary); color: #fff; }
+        .badge { background: #500724; color: #fbcfe8; border: 1px solid #9d174d; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+        .main-container { display: flex; gap: 15px; flex: 1; height: 56vh; margin-bottom: 12px; }
+
+        /* شريط الأدوات */
+        .toolbox { width: 290px; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        .toolbox h3 { font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 4px; text-transform: uppercase; }
+        
+        .tool-category { display: flex; flex-direction: column; gap: 5px; }
+        .tool-item { background: #181826; border: 1px solid var(--border-color); padding: 7px 10px; border-radius: 6px; cursor: grab; text-align: right; font-size: 12px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
+        [dir="ltr"] .tool-item { text-align: left; }
+        .tool-item:active { cursor: grabbing; }
+        .tool-item:hover { border-color: var(--primary); background: #500724; color: #fbcfe8; }
+        
+        /* خيارات الكيبلات */
+        .cable-option { background: #261022; border-color: #831843; cursor: pointer; }
+        .cable-option input[type="radio"] { accent-color: var(--primary); }
+
+        .connect-btn { background: var(--primary); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: center; margin-top: 5px; font-size: 13px; transition: 0.2s; }
+        .connect-btn:hover { background: var(--primary-hover); }
+
+        /* مساحة العمل وأزرار التحكم */
+        .canvas-wrapper { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .canvas-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .action-btn { background: #4c0519; border: 1px solid #831843; color: #fbcfe8; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background: #db2777; color: #fff; }
+
+        .workspace-canvas { flex: 1; background: var(--canvas-bg); border: 2px dashed var(--border-color); border-radius: 10px; position: relative; overflow: hidden; }
+        .canvas-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); font-size: 13px; text-align: center; pointer-events: none; }
+
+        /* الأجهزة المتحركة */
+        .draggable-device { position: absolute; background: #1f1224; border: 1px solid #9d174d; border-radius: 8px; padding: 8px 12px; text-align: center; cursor: move; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 140px; z-index: 2; }
+        .device-info { display: flex; align-items: center; gap: 8px; }
+        .draggable-device span { font-size: 12px; color: #fce7f3; font-weight: 600; }
+        
+        /* زر الحذف الفردي لكل جهاز */
+        .delete-btn-ind { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); border-radius: 4px; font-size: 10px; padding: 2px 6px; cursor: pointer; transition: 0.2s; }
+        .delete-btn-ind:hover { background: var(--accent-red); color: #fff; }
+
+        /* خطوط الكيبلات */
+        .connection-line { position: absolute; background: #f472b6; height: 3px; transform-origin: 0 0; z-index: 1; pointer-events: none; }
+
+        /* شاشة الأوامر السفلية */
+        .terminal-container { background: #07070c; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; height: 160px; }
+        .terminal-header { color: var(--text-secondary); font-size: 11px; margin-bottom: 4px; font-weight: 600; display: flex; justify-content: space-between; }
+        .terminal-output { flex: 1; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #ffffff; direction: ltr; text-align: left; margin-bottom: 6px; line-height: 1.4; }
+        .terminal-input-row { display: flex; gap: 8px; direction: ltr; }
+        .terminal-input-row input { flex: 1; background: #13131f; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 13px; }
+        .terminal-input-row input:focus { outline: none; border-color: var(--primary); }
+        .terminal-input-row button { background: var(--primary); color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .terminal-input-row button:hover { background: var(--primary-hover); }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span class="badge" id="lblBadge">Virtual Hub - مختبر الشبكات الهندسي التفاعلي</span>
+        <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
+    </div>
+
+    <div class="main-container">
+        <!-- شريط الأدوات -->
+        <div class="toolbox">
+            <h3 id="lblDevHeader">أجهزة الشبكات النشطة</h3>
+            <div class="tool-category">
+                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Router" data-icon="🛜">🛜 <span id="tRouter">Router (راوتر)</span></div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Switch" data-icon="🖧">🖧 <span id="tSwitch">Switch (سويتش)</span></div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="PC" data-icon="💻">💻 <span id="tPC">PC (حاسوب)</span></div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Server" data-icon="🖥️">🖥️ <span id="tServer">Server (خادم)</span></div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="AccessPoint" data-icon="📡">📡 <span id="tAP">Access Point (واي فاي)</span></div>
+            </div>
+
+            <h3 id="lblCableHeader">اختر نوع الكيبل</h3>
+            <div class="tool-category">
+                <label class="tool-item cable-option"><input type="radio" name="cable" value="Straight-Through" checked> 🔌 Straight-Through</label>
+                <label class="tool-item cable-option"><input type="radio" name="cable" value="Crossover"> 🔌 Crossover</label>
+                <label class="tool-item cable-option"><input type="radio" name="cable" value="Serial WAN"> ⚡ Serial WAN</label>
+                <label class="tool-item cable-option"><input type="radio" name="cable" value="Fiber Optic"> 💡 Fiber Optic</label>
+                <label class="tool-item cable-option"><input type="radio" name="cable" value="Console"> 💻 Console Cable</label>
+                
+                <button class="connect-btn" onclick="connectSelectedCable()" id="lblConnectBtn">ربط الكيبل المختار</button>
+            </div>
+        </div>
+
+        <!-- مساحة العمل وأزرار التحكم -->
+        <div class="canvas-wrapper">
+            <div class="canvas-actions">
+                <button class="action-btn" onclick="undoLastAction()" id="lblUndo">↩️ تراجع (حذف آخر خطوة)</button>
+                <button class="action-btn" onclick="clearCanvas()" id="lblClear">🗑️ مسح الكل</button>
+            </div>
+            <div class="workspace-canvas" id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <div class="canvas-hint" id="lblHint">اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الأوامر والتنفيذ -->
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <span id="lblTerminalTitle">Virtual Hub CLI (سطر الأوامر واختبارات الـ Ping)</span>
+            <span style="color: var(--primary);" id="lblTerminalSub">اكتب هنا: ping [IP] أو help</span>
+        </div>
+        <div id="terminalOutput" class="terminal-output">
+            Virtual Hub OS Kernel v5.4 - Ready.<br>
+            > جرب كتابة أمر الفحص في الأسفل: ping 192.168.1.1 واضغط Enter
+        </div>
+        <div class="terminal-input-row">
+            <input type="text" id="commandInput" placeholder="Type command here (e.g., ping 192.168.1.1)..." onkeypress="checkEnter(event)">
+            <button onclick="executeCommand()" id="lblSend">تنفيذ</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'ar';
+        let devicesArray = [];
+        let linesArray = [];
+        let actionHistory = [];
+
+        const translations = {
+            ar: {
+                htmlDir: "rtl",
+                badge: "Virtual Hub - مختبر الشبكات الهندسي التفاعلي",
+                devHeader: "أجهزة الشبكات النشطة",
+                cableHeader: "اختر نوع الكيبل",
+                tRouter: "Router (راوتر)",
+                tSwitch: "Switch (سويتش)",
+                tPC: "PC (حاسوب)",
+                tServer: "Server (خادم)",
+                tAP: "Access Point (واي فاي)",
+                connectBtn: "ربط الكيبل المختار",
+                undo: "↩️ تراجع (حذف آخر خطوة)",
+                clear: "🗑️ مسح الكل",
+                hint: "اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!",
+                terminalTitle: "Virtual Hub CLI (سطر الأوامر واختبارات الـ Ping)",
+                terminalSub: "اكتب هنا: ping [IP] أو help",
+                send: "تنفيذ",
+                deleteText: "حذف"
+            },
+            en: {
+                htmlDir: "ltr",
+                badge: "Virtual Hub - Interactive Network Lab",
+                devHeader: "Network Devices",
+                cableHeader: "Select Cable Type",
+                tRouter: "Router",
+                tSwitch: "Switch",
+                tPC: "PC",
+                tServer: "Server",
+                tAP: "Access Point",
+                connectBtn: "Connect Selected Cable",
+                undo: "↩️ Undo (Remove Last Action)",
+                clear: "🗑️ Clear All",
+                hint: "Drag devices here, select a cable, and click connect!",
+                terminalTitle: "Virtual Hub CLI & Ping Testing",
+                terminalSub: "Type here: ping [IP] or help",
+                send: "Run",
+                deleteText: "Delete"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            const t = translations[currentLang];
+            
+            document.getElementById('htmlRoot').setAttribute('dir', t.htmlDir);
+            document.getElementById('langBtn').innerText = currentLang === 'ar' ? 'English' : 'العربية';
+            document.getElementById('lblBadge').innerText = t.badge;
+            document.getElementById('lblDevHeader').innerText = t.devHeader;
+            document.getElementById('lblCableHeader').innerText = t.cableHeader;
+            document.getElementById('tRouter').innerText = t.tRouter;
+            document.getElementById('tSwitch').innerText = t.tSwitch;
+            document.getElementById('tPC').innerText = t.tPC;
+            document.getElementById('tServer').innerText = t.tServer;
+            document.getElementById('tAP').innerText = t.tAP;
+            document.getElementById('lblConnectBtn').innerText = t.connectBtn;
+            document.getElementById('lblUndo').innerText = t.undo;
+            document.getElementById('lblClear').innerText = t.clear;
+            document.getElementById('lblHint').innerText = t.hint;
+            document.getElementById('lblTerminalTitle').innerText = t.terminalTitle;
+            document.getElementById('lblTerminalSub').innerText = t.terminalSub;
+            document.getElementById('lblSend').innerText = t.send;
+
+            // تحديث نصوص أزرار الحذف للأجهزة الموجودة حالياً
+            document.querySelectorAll('.delete-btn-ind').forEach(btn => {
+                btn.innerText = `❌ ${t.deleteText}`;
+            });
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text/plain", JSON.stringify({
+                type: ev.target.dataset.type,
+                icon: ev.target.dataset.icon
+            }));
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const canvas = document.getElementById('canvas');
+            const hint = document.getElementById('lblHint');
+            if (hint) hint.style.display = 'none';
+
+            const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
+            const rect = canvas.getBoundingClientRect();
+            const x = ev.clientX - rect.left - 70;
+            const y = ev.clientY - rect.top - 30;
+
+            const deviceDiv = document.createElement('div');
+            deviceDiv.className = 'draggable-device';
+            deviceDiv.style.left = `${Math.max(10, x)}px`;
+            deviceDiv.style.top = `${Math.max(10, y)}px`;
+            const devName = `${data.type} 0${devicesArray.length + 1}`;
+            
+            const deleteLabel = currentLang === 'ar' ? 'حذف' : 'Delete';
+
+            deviceDiv.innerHTML = `
+                <div class="device-info">
+                    <span style="font-size: 18px;">${data.icon}</span>
+                    <span>${devName}</span>
+                </div>
+                <button class="delete-btn-ind" onclick="removeSpecificDevice('${devName}')">❌ ${deleteLabel}</button>
+            `;
+
+            makeElementDraggable(deviceDiv);
+            canvas.appendChild(deviceDiv);
+
+            const devObj = { element: deviceDiv, name: devName };
+            devicesArray.push(devObj);
+            actionHistory.push({ type: 'device', ref: devObj });
+            
+            appendOutput(`> Placed ${devName} successfully.`);
+        }
+
+        function removeSpecificDevice(devName) {
+            const targetDev = devicesArray.find(d => d.name === devName);
+            if (targetDev) {
+                targetDev.element.remove();
+                devicesArray = devicesArray.filter(d => d !== targetDev);
+                actionHistory = actionHistory.filter(act => act.ref !== targetDev);
+                
+                // إذا لم يتبق أجهزة، أظهر الإرشاد مجدداً
+                if (devicesArray.length === 0) {
+                    const hint = document.getElementById('lblHint');
+                    if (hint) hint.style.display = 'block';
+                }
+                appendOutput(`> Removed device: ${devName}`);
+            }
+        }
+
+        function makeElementDraggable(elm) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elm.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                // منع التحريك إذا تم الضغط على زر الحذف
+                if (e.target.classList.contains('delete-btn-ind')) return;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elm.style.top = (elm.offsetTop - pos2) + "px";
+                elm.style.left = (elm.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function connectSelectedCable() {
+            if (devicesArray.length < 2) {
+                appendOutput(`<span style="color: #f87171;">> Error: Add at least 2 devices on canvas first!</span>`);
+                return;
+            }
+
+            const selectedCable = document.querySelector('input[name="cable"]:checked').value;
+            const dev1 = devicesArray[devicesArray.length - 2].element;
+            const dev2 = devicesArray[devicesArray.length - 1].element;
+            
+            const canvas = document.getElementById('canvas');
+            const line = document.createElement('div');
+            line.className = 'connection-line';
+            
+            function updateLine() {
+                const x1 = dev1.offsetLeft + dev1.offsetWidth / 2;
+                const y1 = dev1.offsetTop + dev1.offsetHeight / 2;
+                const x2 = dev2.offsetLeft + dev2.offsetWidth / 2;
+                const y2 = dev2.offsetTop + dev2.offsetHeight / 2;
+
+                const length = Math.hypot(x2 - x1, y2 - y1);
+                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+                line.style.width = `${length}px`;
+                line.style.left = `${x1}px`;
+                line.style.top = `${y1}px`;
+                line.style.transform = `rotate(${angle}deg)`;
+            }
+
+            updateLine();
+            canvas.appendChild(line);
+            
+            const lineObj = { element: line };
+            linesArray.push(lineObj);
+            actionHistory.push({ type: 'cable', ref: lineObj });
+
+            appendOutput(`> Successfully linked last two devices using [${selectedCable}] cable!`);
+        }
+
+        function undoLastAction() {
+            if (actionHistory.length > 0) {
+                const lastAction = actionHistory.pop();
+                if (lastAction.type === 'device') {
+                    lastAction.ref.element.remove();
+                    devicesArray = devicesArray.filter(d => d !== lastAction.ref);
+                    if (devicesArray.length === 0) {
+                        const hint = document.getElementById('lblHint');
+                        if (hint) hint.style.display = 'block';
+                    }
+                    appendOutput(`> Undone: Removed last added device.`);
+                } else if (lastAction.type === 'cable') {
+                    lastAction.ref.element.remove();
+                    linesArray = linesArray.filter(l => l !== lastAction.ref);
+                    appendOutput(`> Undone: Removed last connected cable.`);
+                }
+            } else {
+                appendOutput(`> Workspace is empty, nothing to undo.`);
+            }
+        }
+
+        function clearCanvas() {
+            devicesArray.forEach(d => {
+                if (d.element && d.element.parentNode) d.element.remove();
+            });
+            linesArray.forEach(l => {
+                if (l.element && l.element.parentNode) l.element.remove();
+            });
+            
+            devicesArray = [];
+            linesArray = [];
+            actionHistory = [];
+
+            const hint = document.getElementById('lblHint');
+            if (hint) hint.style.display = 'block';
+            appendOutput(`> Workspace cleared completely.`);
+        }
+
+        function appendOutput(text) {
+            const out = document.getElementById('terminalOutput');
+            out.innerHTML += `<br>${text}`;
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function checkEnter(e) {
+            if (e.key === 'Enter') executeCommand();
+        }
+
+        function executeCommand() {
+            const input = document.getElementById('commandInput');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+
+            appendOutput(`> ${cmd}`);
+            const parts = cmd.split(' ');
+            const action = parts[0].toLowerCase();
+
+            if (action === 'help') {
+                appendOutput(`Available commands:<br> - ping [IP] : Test connectivity<br> - show ip interface brief : View ports status`);
+            } else if (action === 'ping') {
+                const target = parts[1] || '192.168.1.1';
+                appendOutput(`Pinging ${target} with 32 bytes of data:`);
+                setTimeout(() => appendOutput(`Reply from ${target}: bytes=32 time=2ms TTL=64`), 300);
+                setTimeout(() => appendOutput(`Reply from ${target}: bytes=32 time=1ms TTL=64`), 600);
+                setTimeout(() => appendOutput(`<span style="color: #34d399;">Ping statistics: Sent = 2, Received = 2, Lost = 0 (0% loss)</span>`), 900);
+            } else if (cmd === 'show ip interface brief') {
+                appendOutput(`Interface\tIP-Address\tStatus\nFa0/0\t\t192.168.1.1\tup/up`);
+            } else {
+                appendOutput(`<span style="color: #f87171;">Command not recognized. Type 'help'.</span>`);
+            }
+
+            input.value = '';
+        }
+    </script>
+
+</body>
+</html>
