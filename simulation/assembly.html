@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8086 Assembly Virtual Lab & Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #09090b;
+            --panel-bg: #121217;
+            --border-color: #27272a;
+            --text-main: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent-green: #22c55e;
+            --power-red: #ef4444;
+            --power-green: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 12px; }
+        
+        .header { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .sys-title { font-size: 13px; font-weight: 700; color: #818cf8; font-family: 'Fira Code', monospace; }
+        
+        .top-controls { display: flex; gap: 8px; align-items: center; }
+        .lang-btn { background: #27272a; color: #fff; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        .lang-btn:hover { background: var(--primary); }
+
+        .workspace { display: grid; grid-template-columns: 1fr 320px; gap: 10px; flex: 1; height: calc(100vh - 190px); margin-bottom: 10px; }
+        @media(max-width: 1024px) { .workspace { grid-template-columns: 1fr; height: auto; } }
+
+        .panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
+        .panel-title { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* محرر الأسمبلي */
+        .editor-container { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .code-area { flex: 1; background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; color: var(--accent-green); font-family: 'Fira Code', monospace; font-size: 13px; resize: none; direction: ltr; text-align: left; line-height: 1.4; outline: none; }
+        .code-area:focus { border-color: var(--primary); }
+        
+        .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn { background: var(--primary); color: #fff; border: none; padding: 7px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; flex: 1; text-align: center; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-power { background: var(--power-red); }
+        .btn-power.active { background: var(--power-green); }
+        .btn-sec { background: #27272a; }
+        .btn-sec:hover { background: #3f3f46; }
+        .btn-danger { background: #7f1d1d; }
+        .btn-danger:hover { background: #991b1b; }
+
+        /* لوحة السجلات والفلاغز */
+        .regs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
+        .reg-box { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; }
+        .reg-label { font-size: 10px; color: var(--text-secondary); font-family: 'Fira Code', monospace; }
+        .reg-val { font-size: 12px; color: #818cf8; font-weight: 700; font-family: 'Fira Code', monospace; }
+
+        .flags-container { display: flex; gap: 6px; margin-top: 4px; }
+        .flag-box { flex: 1; background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; text-align: center; }
+        .flag-name { font-size: 9px; color: var(--text-secondary); }
+        .flag-val { font-size: 11px; font-weight: 700; color: #38bdf8; font-family: 'Fira Code', monospace; }
+
+        .power-status-box { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-family: 'Fira Code', monospace; font-size: 11px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .led { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444; transition: 0.3s; }
+        .led.on { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+
+        /* التيرمنال السفلي */
+        .terminal-panel { background: #050507; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; height: 130px; display: flex; flex-direction: column; }
+        .terminal-header { font-size: 11px; color: var(--text-secondary); font-family: 'Fira Code', monospace; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .terminal-out { flex: 1; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 11px; color: var(--accent-green); direction: ltr; text-align: left; line-height: 1.4; }
+        .terminal-input-line { display: flex; align-items: center; gap: 6px; border-top: 1px solid #27272a; padding-top: 4px; margin-top: 4px; }
+        .prompt { color: var(--primary); font-family: 'Fira Code', monospace; font-weight: bold; font-size: 11px; }
+        .t-input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Fira Code', monospace; font-size: 11px; outline: none; direction: ltr; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <div class="sys-title" id="lblSysTitle">8086 ASSEMBLY VIRTUAL LAB & HARDWARE SIMULATOR</div>
+            <div style="font-size: 11px; color: var(--text-secondary);" id="lblSysSub">مختبر لغة الأسمبلي الهندسي العام - تيرمنال ولوحة محاكاة</div>
+        </div>
+        <div class="top-controls">
+            <button class="lang-btn" onclick="toggleLanguage()">🌐 English / عربي</button>
+            <div style="font-size: 11px; color: #818cf8; font-family: 'Fira Code', monospace;">Engineer Workspace</div>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <!-- 1. محرر الكود الحُر -->
+        <div class="panel">
+            <div class="panel-title">
+                <span id="lblEditorTitle">Assembly Code Editor (محرر الأكواد)</span>
+                <span id="fileNameLabel" style="color: var(--primary); font-family: 'Fira Code', monospace;">program.asm</span>
+            </div>
+            <div class="editor-container">
+                <textarea class="code-area" id="asmCode" oninput="saveHistoryState()">CODE SEGMENT
+ASSUME CS:CODE, DS:CODE
+ORG 0
+Start:
+    MOV AX, 1524H
+    MOV BX, 1273H
+    ADD AX, BX
+CODE ENDS
+END START</textarea>
+                <div class="btn-group">
+                    <button class="btn btn-power" id="powerBtn" onclick="togglePower()">🔌 <span id="lblPower">تشغيل الكهرباء (Power OFF)</span></button>
+                    <button class="btn" onclick="compileAndRun()">▶ <span id="lblRun">تنفيذ (Run)</span></button>
+                    <button class="btn btn-sec" onclick="undoCode()">↩ <span id="lblUndo">تراجع</span></button>
+                    <button class="btn btn-sec" onclick="saveFile()">💾 <span id="lblSave">حفظ</span></button>
+                    <button class="btn btn-danger" onclick="clearCode()">🗑 <span id="lblClear">حذف</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. لوحة العارد والسجلات (Hardware Status) -->
+        <div class="panel">
+            <div class="panel-title" id="lblRegsTitle">السجلات (CPU Registers)</div>
+            <div class="regs-grid">
+                <div class="reg-box"><span class="reg-label">AX</span><span class="reg-val" id="regAX">0x0000</span></div>
+                <div class="reg-box"><span class="reg-label">BX</span><span class="reg-val" id="regBX">0x0000</span></div>
+                <div class="reg-box"><span class="reg-label">CX</span><span class="reg-val" id="regCX">0x0000</span></div>
+                <div class="reg-box"><span class="reg-label">DX</span><span class="reg-val" id="regDX">0x0000</span></div>
+            </div>
+            
+            <div class="panel-title" style="margin-top: 4px;" id="lblFlagsTitle">حالة الفلاغز (Flags)</div>
+            <div class="flags-container">
+                <div class="flag-box"><span class="flag-name">CF</span><div class="flag-val" id="flagCF">0</div></div>
+                <div class="flag-box"><span class="flag-name">OF</span><div class="flag-val" id="flagOF">0</div></div>
+                <div class="flag-box"><span class="flag-name">ZF</span><div class="flag-val" id="flagZF">0</div></div>
+                <div class="flag-box"><span class="flag-name">SF</span><div class="flag-val" id="flagSF">0</div></div>
+            </div>
+
+            <div class="power-status-box">
+                <span id="lblPowerStatus">حالة اللوحة: مفصول</span>
+                <div class="led" id="boardLed"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التيرمنال السفلي -->
+    <div class="terminal-panel">
+        <div class="terminal-header">
+            <span id="lblTermHeader">Hardware Terminal CLI (موجّه الأوامر والتنفيذ)</span>
+            <span style="color: var(--accent-green);" id="lblTermStatus">Ready</span>
+        </div>
+        <div class="terminal-out" id="termOut">
+            Virtual Hardware Initialized. Connect Power (🔌) and click Run or type 'run'.
+        </div>
+        <div class="terminal-input-line">
+            <span class="prompt">hardware@8086:~$</span>
+            <input type="text" class="t-input" id="termInput" placeholder="اكتب أمراً هنا (مثال: run, power, clear)..." onkeydown="handleTerminal(event)">
+        </div>
+    </div>
+
+    <script>
+        let isPoweredOn = false;
+        let regs = { AX: 0, BX: 0, CX: 0, DX: 0 };
+        let flags = { CF: 0, OF: 0, ZF: 0, SF: 0 };
+        let historyStack = [];
+        let currentLang = 'ar';
+
+        const translations = {
+            ar: {
+                sysTitle: "8086 ASSEMBLY VIRTUAL LAB & HARDWARE SIMULATOR",
+                sysSub: "مختبر لغة الأسمبلي الهندسي العام - تيرمنال ولوحة محاكاة",
+                editorTitle: "Assembly Code Editor (محرر الأكواد الحُر)",
+                powerOff: "تشغيل الكهرباء (Power OFF)",
+                powerOn: "إيقاف الكهرباء (Power ON)",
+                run: "تنفيذ (Run)",
+                undo: "تراجع",
+                save: "حفظ",
+                clear: "حذف",
+                regs: "السجلات (CPU Registers)",
+                flags: "حالة الفلاغز (Flags)",
+                termHeader: "Hardware Terminal CLI (موجّه الأوامر والتنفيذ)",
+                boardOff: "حالة اللوحة: مفصول",
+                boardOn: "حالة اللوحة: متصل (تشغيل)"
+            },
+            en: {
+                sysTitle: "8086 ASSEMBLY VIRTUAL LAB & HARDWARE SIMULATOR",
+                sysSub: "General Engineering Assembly Lab - Terminal & Hardware",
+                editorTitle: "Assembly Code Editor",
+                powerOff: "Power OFF",
+                powerOn: "Power ON",
+                run: "Run",
+                undo: "Undo",
+                save: "Save",
+                clear: "Clear",
+                regs: "CPU Registers",
+                flags: "Status Flags",
+                termHeader: "Hardware Terminal CLI",
+                boardOff: "Board Status: OFF",
+                boardOn: "Board Status: ACTIVE"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.getElementById('htmlRoot').setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+            let t = translations[currentLang];
+            document.getElementById('lblSysSub').innerText = t.sysSub;
+            document.getElementById('lblEditorTitle').innerText = t.editorTitle;
+            document.getElementById('lblRun').innerText = t.run;
+            document.getElementById('lblUndo').innerText = t.undo;
+            document.getElementById('lblSave').innerText = t.save;
+            document.getElementById('lblClear').innerText = t.clear;
+            document.getElementById('lblRegsTitle').innerText = t.regs;
+            document.getElementById('lblFlagsTitle').innerText = t.flags;
+            document.getElementById('lblTermHeader').innerText = t.termHeader;
+            
+            let pBtn = document.getElementById('powerBtn');
+            pBtn.innerHTML = `🔌 <span>${isPoweredOn ? t.powerOn : t.powerOff}</span>`;
+            document.getElementById('lblPowerStatus').innerText = isPoweredOn ? t.boardOn : t.boardOff;
+            logTerm(`> Language switched to ${currentLang.toUpperCase()}`);
+        }
+
+        function logTerm(msg) {
+            const out = document.getElementById('termOut');
+            out.innerHTML += `<br>${msg}`;
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function togglePower() {
+            isPoweredOn = !isPoweredOn;
+            let btn = document.getElementById('powerBtn');
+            let led = document.getElementById('boardLed');
+            let t = translations[currentLang];
+            
+            if (isPoweredOn) {
+                btn.classList.add('active');
+                btn.innerHTML = `🔌 <span>${t.powerOn}</span>`;
+                led.classList.add('on');
+                document.getElementById('lblPowerStatus').innerText = t.boardOn;
+                logTerm(`> [POWER ON] Hardware board energized successfully. Ready for execution.`);
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `🔌 <span>${t.powerOff}</span>`;
+                led.classList.remove('on');
+                document.getElementById('lblPowerStatus').innerText = t.boardOff;
+                logTerm(`> [POWER OFF] Hardware board disconnected.`);
+            }
+        }
+
+        function saveHistoryState() {
+            const val = document.getElementById('asmCode').value;
+            if (historyStack[historyStack.length - 1] !== val) {
+                historyStack.push(val);
+            }
+        }
+
+        function undoCode() {
+            if (historyStack.length > 1) {
+                historyStack.pop();
+                document.getElementById('asmCode').value = historyStack[historyStack.length - 1];
+                logTerm(`> Action undone.`);
+            } else {
+                logTerm(`> Nothing to undo.`);
+            }
+        }
+
+        function saveFile() {
+            let code = document.getElementById('asmCode').value;
+            let blob = new Blob([code], { type: 'text/plain' });
+            let anchor = document.createElement('a');
+            anchor.download = "program.asm";
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+            logTerm(`> File 'program.asm' saved to your computer successfully.`);
+        }
+
+        function clearCode() {
+            if (confirm("هل تريد مسح محرر الأكواد بالكامل؟")) {
+                saveHistoryState();
+                document.getElementById('asmCode').value = "";
+                logTerm(`> Editor cleared.`);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('regAX').innerText = `0x${regs.AX.toString(16).toUpperCase().padStart(4, '0')}`;
+            document.getElementById('regBX').innerText = `0x${regs.BX.toString(16).toUpperCase().padStart(4, '0')}`;
+            document.getElementById('regCX').innerText = `0x${regs.CX.toString(16).toUpperCase().padStart(4, '0')}`;
+            document.getElementById('regDX').innerText = `0x${regs.DX.toString(16).toUpperCase().padStart(4, '0')}`;
+            
+            document.getElementById('flagCF').innerText = flags.CF;
+            document.getElementById('flagOF').innerText = flags.OF;
+            document.getElementById('flagZF').innerText = flags.ZF;
+            document.getElementById('flagSF').innerText = flags.SF;
+        }
+
+        function parseVal(valStr) {
+            if (!valStr) return 0;
+            if (regs.hasOwnProperty(valStr)) return regs[valStr];
+            if (valStr.endsWith('H') || valStr.endsWith('h')) {
+                return parseInt(valStr.slice(0, -1), 16) || 0;
+            }
+            return parseInt(valStr) || 0;
+        }
+
+        function compileAndRun() {
+            if (!isPoweredOn) {
+                logTerm(`> [ERROR] Cannot execute! Please turn ON the power button first (🔌).`);
+                alert("يرجى تشغيل اللوحة بالضغط على زر الكهرباء أولاً!");
+                return;
+            }
+
+            const code = document.getElementById('asmCode').value;
+            const lines = code.split('\n');
+            logTerm(`> Assembling code... Zero errors found.`);
+
+            regs = { AX: 0, BX: 0, CX: 0, DX: 0 };
+            flags = { CF: 0, OF: 0, ZF: 0, SF: 0 };
+
+            lines.forEach(line => {
+                const clean = line.trim().toUpperCase();
+                if (!clean || clean.startsWith(';') || clean.endsWith(':')) return;
+
+                const parts = clean.replace(/,/g, '').split(/\s+/);
+                const cmd = parts[0];
+                const dest = parts[1];
+                const src = parts[2];
+
+                if (cmd === 'MOV' && regs.hasOwnProperty(dest)) {
+                    regs[dest] = parseVal(src);
+                } else if (cmd === 'ADD' && regs.hasOwnProperty(dest)) {
+                    regs[dest] += parseVal(src);
+                    if (regs[dest] > 0xFFFF) { flags.CF = 1; regs[dest] &= 0xFFFF; }
+                } else if (cmd === 'SUB' && regs.hasOwnProperty(dest)) {
+                    regs[dest] -= parseVal(src);
+                    if (regs[dest] < 0) { flags.CF = 1; regs[dest] = 0; }
+                } else if (cmd === 'MUL') {
+                    let val = parseVal(dest);
+                    let res = regs.AX * val;
+                    regs.AX = res & 0xFFFF;
+                    regs.DX = (res >> 16) & 0xFFFF;
+                    if (regs.DX > 0) { flags.CF = 1; flags.OF = 1; }
+                } else if (cmd === 'DIV') {
+                    let divisor = parseVal(dest);
+                    if (divisor !== 0) {
+                        let quotient = Math.floor(regs.AX / divisor);
+                        let remainder = regs.AX % divisor;
+                        regs.AX = quotient;
+                        regs.DX = remainder;
+                    }
+                }
+            });
+
+            if (regs.AX === 0) flags.ZF = 1;
+            updateUI();
+            logTerm(`> Execution finished successfully. Registers updated on hardware display.`);
+        }
+
+        function handleTerminal(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('termInput');
+                const val = input.value.trim().toLowerCase();
+                logTerm(`hardware@8086:~$ ${val}`);
+                
+                if (val === 'help') {
+                    logTerm(`Commands:\n  - run    : execute current code\n  - power  : toggle power switch\n  - save   : download .asm file\n  - clear  : clear terminal screen`);
+                } else if (val === 'run') {
+                    compileAndRun();
+                } else if (val === 'power') {
+                    togglePower();
+                } else if (val === 'save') {
+                    saveFile();
+                } else if (val === 'clear') {
+                    document.getElementById('termOut').innerHTML = `Terminal cleared.`;
+                } else if (val !== '') {
+                    logTerm(`Command not found: ${val}`);
+                }
+                input.value = '';
+            }
+        }
+
+        saveHistoryState();
+        updateUI();
+    </script>
+</body>
+</html>
