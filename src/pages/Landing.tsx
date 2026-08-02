@@ -37,7 +37,7 @@ export default function Landing() {
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
         gap: '24px',
-        maxWidth: '900px',
+        maxWidth: '1100px',
         width: '100%',
         marginBottom: '48px'
       }}>
@@ -62,6 +62,20 @@ export default function Landing() {
             icon: '🤖',
             path: '/lab/robotics',
             color: '#e91e8c'
+          },
+          {
+            title: 'Assembly Lab',
+            desc: 'Write and simulate 8086 Assembly code with real-time CPU register visualization.',
+            icon: '💻',
+            path: '/lab/assembly',
+            color: '#4f46e5'
+          },
+          {
+            title: 'Circuit Lab',
+            desc: 'Build and simulate electrical circuits with drag & drop components and real-time calculations.',
+            icon: '🔌',
+            path: '/lab/circuit',
+            color: '#0284c7'
           }
         ].map((lab) => (
           <div

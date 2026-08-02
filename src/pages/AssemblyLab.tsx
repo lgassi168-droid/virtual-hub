@@ -1,10 +1,10 @@
-export default function NetworkLab() {
+export default function AssemblyLab() {
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 60px)' }}>
       <iframe
-        src="/simulation/network.html"
+        src="/simulation/assembly.html"
         style={{ width: '100%', height: '100%', border: 'none' }}
-        title="Network & Cyber Lab"
+        title="Assembly Lab"
       />
     </div>
   )
