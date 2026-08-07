@@ -38,9 +38,13 @@
         .tool-item:active { cursor: grabbing; }
         .tool-item:hover { border-color: var(--primary); background: #500724; color: #fbcfe8; }
         
-        /* خيارات الكيبلات */
+        /* خيارات الكيبلات والمنافذ الجانبية */
         .cable-option { background: #261022; border-color: #831843; cursor: pointer; }
         .cable-option input[type="radio"] { accent-color: var(--primary); }
+
+        .ports-section { background: #181826; border: 1px dashed var(--primary); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+        .port-select { background: #0f0f18; border: 1px solid var(--border-color); color: #fff; padding: 5px; border-radius: 4px; font-size: 11px; width: 100%; outline: none; }
+        .port-select:focus { border-color: var(--primary); }
 
         .connect-btn { background: var(--primary); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: center; margin-top: 5px; font-size: 13px; transition: 0.2s; }
         .connect-btn:hover { background: var(--primary-hover); }
@@ -103,8 +107,26 @@
                 <label class="tool-item cable-option"><input type="radio" name="cable" value="Serial WAN"> ⚡ Serial WAN</label>
                 <label class="tool-item cable-option"><input type="radio" name="cable" value="Fiber Optic"> 💡 Fiber Optic</label>
                 <label class="tool-item cable-option"><input type="radio" name="cable" value="Console"> 💻 Console Cable</label>
-                
-                <button class="connect-btn" onclick="connectSelectedCable()" id="lblConnectBtn">ربط الكيبل المختار</button>
+            </div>
+
+            <!-- سكشن المنافذ مع FastEthernet و Serial -->
+            <h3 id="lblPortsHeader">إدارة المنافذ (Ports)</h3>
+            <div class="ports-section">
+                <select id="portSelect1" class="port-select">
+                    <option value="FastEthernet0/0">FastEthernet (Fa0/0)</option>
+                    <option value="FastEthernet0/1">FastEthernet (Fa0/1)</option>
+                    <option value="GigabitEthernet0/1">GigabitEthernet (Gi0/1)</option>
+                    <option value="Serial0/0/0">Serial (Ser0/0/0)</option>
+                    <option value="Serial0/0/1">Serial (Ser0/0/1)</option>
+                </select>
+                <select id="portSelect2" class="port-select">
+                    <option value="FastEthernet0/1">FastEthernet (Fa0/1)</option>
+                    <option value="FastEthernet0/0">FastEthernet (Fa0/0)</option>
+                    <option value="GigabitEthernet0/1">GigabitEthernet (Gi0/1)</option>
+                    <option value="Serial0/0/0">Serial (Ser0/0/0)</option>
+                    <option value="Serial0/0/1">Serial (Ser0/0/1)</option>
+                </select>
+                <button class="connect-btn" onclick="connectSelectedCable()" id="lblConnectBtn">ربط الكيبل بالمنافذ المحددة</button>
             </div>
         </div>
 
@@ -115,7 +137,7 @@
                 <button class="action-btn" onclick="clearCanvas()" id="lblClear">🗑️ مسح الكل</button>
             </div>
             <div class="workspace-canvas" id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
-                <div class="canvas-hint" id="lblHint">اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!</div>
+                <div class="canvas-hint" id="lblHint">اسحب الأجهزة هنا، اختر الكيبل والمنافذ من الجنب، واضغط زر الربط!</div>
             </div>
         </div>
     </div>
@@ -148,15 +170,16 @@
                 badge: "Virtual Hub - مختبر الشبكات الهندسي التفاعلي",
                 devHeader: "أجهزة الشبكات النشطة",
                 cableHeader: "اختر نوع الكيبل",
+                portsHeader: "إدارة المنافذ (Ports)",
                 tRouter: "Router (راوتر)",
                 tSwitch: "Switch (سويتش)",
                 tPC: "PC (حاسوب)",
                 tServer: "Server (خادم)",
                 tAP: "Access Point (واي فاي)",
-                connectBtn: "ربط الكيبل المختار",
+                connectBtn: "ربط الكيبل بالمنافذ المحددة",
                 undo: "↩️ تراجع (حذف آخر خطوة)",
                 clear: "🗑️ مسح الكل",
-                hint: "اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!",
+                hint: "اسحب الأجهزة هنا، اختر الكيبل والمنافذ من الجنب، واضغط زر الربط!",
                 terminalTitle: "Virtual Hub CLI (سطر الأوامر واختبارات الـ Ping)",
                 terminalSub: "اكتب هنا: ping [IP] أو help",
                 send: "تنفيذ",
@@ -167,15 +190,16 @@
                 badge: "Virtual Hub - Interactive Network Lab",
                 devHeader: "Network Devices",
                 cableHeader: "Select Cable Type",
+                portsHeader: "Ports Management",
                 tRouter: "Router",
                 tSwitch: "Switch",
                 tPC: "PC",
                 tServer: "Server",
                 tAP: "Access Point",
-                connectBtn: "Connect Selected Cable",
+                connectBtn: "Connect Cable & Ports",
                 undo: "↩️ Undo (Remove Last Action)",
                 clear: "🗑️ Clear All",
-                hint: "Drag devices here, select a cable, and click connect!",
+                hint: "Drag devices here, select cable/ports from sidebar, and click connect!",
                 terminalTitle: "Virtual Hub CLI & Ping Testing",
                 terminalSub: "Type here: ping [IP] or help",
                 send: "Run",
@@ -192,6 +216,7 @@
             document.getElementById('lblBadge').innerText = t.badge;
             document.getElementById('lblDevHeader').innerText = t.devHeader;
             document.getElementById('lblCableHeader').innerText = t.cableHeader;
+            document.getElementById('lblPortsHeader').innerText = t.portsHeader;
             document.getElementById('tRouter').innerText = t.tRouter;
             document.getElementById('tSwitch').innerText = t.tSwitch;
             document.getElementById('tPC').innerText = t.tPC;
@@ -205,7 +230,6 @@
             document.getElementById('lblTerminalSub').innerText = t.terminalSub;
             document.getElementById('lblSend').innerText = t.send;
 
-            // تحديث نصوص أزرار الحذف للأجهزة الموجودة حالياً
             document.querySelectorAll('.delete-btn-ind').forEach(btn => {
                 btn.innerText = `❌ ${t.deleteText}`;
             });
@@ -264,7 +288,6 @@
                 devicesArray = devicesArray.filter(d => d !== targetDev);
                 actionHistory = actionHistory.filter(act => act.ref !== targetDev);
                 
-                // إذا لم يتبق أجهزة، أظهر الإرشاد مجدداً
                 if (devicesArray.length === 0) {
                     const hint = document.getElementById('lblHint');
                     if (hint) hint.style.display = 'block';
@@ -278,7 +301,6 @@
             elm.onmousedown = dragMouseDown;
 
             function dragMouseDown(e) {
-                // منع التحريك إذا تم الضغط على زر الحذف
                 if (e.target.classList.contains('delete-btn-ind')) return;
                 e.preventDefault();
                 pos3 = e.clientX;
@@ -310,6 +332,9 @@
             }
 
             const selectedCable = document.querySelector('input[name="cable"]:checked').value;
+            const port1 = document.getElementById('portSelect1').value;
+            const port2 = document.getElementById('portSelect2').value;
+            
             const dev1 = devicesArray[devicesArray.length - 2].element;
             const dev2 = devicesArray[devicesArray.length - 1].element;
             
@@ -339,7 +364,7 @@
             linesArray.push(lineObj);
             actionHistory.push({ type: 'cable', ref: lineObj });
 
-            appendOutput(`> Successfully linked last two devices using [${selectedCable}] cable!`);
+            appendOutput(`> Linked devices using [${selectedCable}] via ports [${port1} <---> ${port2}]!`);
         }
 
         function undoLastAction() {
