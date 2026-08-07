@@ -113,6 +113,7 @@
             <button class="action-btn" onclick="toggleLanguage()">🌐 <span id="langText">English</span></button>
             <button class="action-btn" id="undoBtn" onclick="undoAction()" disabled>↩️ <span id="undoTxt">تراجع</span></button>
             <button class="action-btn" onclick="clearWorkspace()" style="color: var(--accent-red);">🗑️ <span id="clearTxt">مسح</span></button>
+            <button class="action-btn" onclick="saveThisAsProject()" style="color: var(--primary);">💾 <span id="saveProjTxt">حفظ كمشروع</span></button>
         </div>
     </div>
 
@@ -247,6 +248,7 @@ void loop() {
         let currentLang = 'ar';
         let isWideCanvas = false;
         let selectedColor = '#eab308';
+        let currentProjectId = null;
 
         function selectWireColor(color, element) {
             selectedColor = color;
@@ -301,6 +303,7 @@ void loop() {
             updatePortDropdowns();
             renderWiresList();
             redrawWires();
+            saveCurrentProgress();
         }
 
         function allowDrop(ev) { ev.preventDefault(); }
@@ -438,6 +441,7 @@ void loop() {
             canvas.appendChild(el);
             nodesList.push({ id, type, x, y });
             updatePortDropdowns();
+            saveCurrentProgress();
         }
 
         function removeComp(id) {
@@ -449,6 +453,7 @@ void loop() {
             updatePortDropdowns();
             renderWiresList();
             redrawWires();
+            saveCurrentProgress();
         }
 
         function makeDraggable(elm) {
@@ -469,7 +474,7 @@ void loop() {
                 elm.style.left = (elm.offsetLeft - p1) + "px";
                 redrawWires();
             }
-            function closeDrag() { document.onmouseup = null; document.onmousemove = null; }
+            function closeDrag() { document.onmouseup = null; document.onmousemove = null; saveCurrentProgress(); }
         }
 
         function updatePortDropdowns() {
@@ -514,6 +519,7 @@ void loop() {
 
             renderWiresList();
             redrawWires();
+            saveCurrentProgress();
         }
 
         function removeWire(wireId) {
@@ -521,6 +527,7 @@ void loop() {
             wiresList = wiresList.filter(w => w.id !== wireId);
             renderWiresList();
             redrawWires();
+            saveCurrentProgress();
         }
 
         function renderWiresList() {
@@ -588,6 +595,7 @@ void loop() {
 
         function compileCode() {
             alert(currentLang === 'ar' ? '✅ تم التحقق من الكود بنجاح!' : '✅ Code verified successfully!');
+            saveCurrentProgress();
         }
 
         function clearWorkspace() {
@@ -596,6 +604,7 @@ void loop() {
             nodesList = []; wiresList = []; compCounter = 0;
             updatePortDropdowns();
             renderWiresList();
+            saveCurrentProgress();
         }
 
         function rebindEvents() {
@@ -615,7 +624,56 @@ void loop() {
             document.getElementById('sysStatusLbl').innerText = currentLang === 'ar' ? 'حالة النظام:' : 'Status:';
             document.getElementById('tabWiring').innerText = currentLang === 'ar' ? 'إدارة الأسلاك' : 'Wiring';
             document.getElementById('tabCode').innerText = currentLang === 'ar' ? 'الكود البرمجي' : 'Code';
+            document.getElementById('saveProjTxt').innerText = currentLang === 'ar' ? 'حفظ كمشروع' : 'Save as Project';
         }
+
+        /* ================= حفظ كمشروع (My Projects بالداشبورد) ================= */
+
+        function saveThisAsProject(){
+            const name = prompt(currentLang === 'ar' ? 'اسم المشروع:' : 'Project name:');
+            if(!name || !name.trim()) return;
+
+            const id = saveCurrentAsProject(name, 'embedded');
+            if(id){
+                currentProjectId = id;
+                saveCurrentProgress();
+                history.replaceState(null, '', '?project=' + id);
+                alert(currentLang === 'ar' ? '✅ تم حفظ المشروع!' : '✅ Project saved!');
+            }
+        }
+
+        function saveCurrentProgress(){
+            if(!currentProjectId) return;
+            saveProjectProgress(currentProjectId, {
+                canvasHtml: document.getElementById('simCanvas').innerHTML,
+                nodes: JSON.parse(JSON.stringify(nodesList)),
+                wires: JSON.parse(JSON.stringify(wiresList)),
+                compCounter: compCounter,
+                code: document.getElementById('arduinoCode').value
+            });
+        }
+
+        function initProjectFromURL(){
+            currentProjectId = getProjectIdFromURL();
+            if(!currentProjectId) return;
+
+            const saved = loadProjectProgress(currentProjectId);
+            if(saved){
+                document.getElementById('simCanvas').innerHTML = saved.canvasHtml + '<svg id="wireSvg"></svg>';
+                nodesList = saved.nodes;
+                wiresList = saved.wires;
+                compCounter = saved.compCounter || compCounter;
+                document.getElementById('arduinoCode').value = saved.code || document.getElementById('arduinoCode').value;
+                rebindEvents();
+                updatePortDropdowns();
+                renderWiresList();
+                redrawWires();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initProjectFromURL);
     </script>
+
+    <script src="../dashboard/lab-status.js"></script>
 </body>
 </html>
