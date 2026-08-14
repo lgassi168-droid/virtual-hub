@@ -22,6 +22,8 @@
         body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 15px; user-select: none; }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .save-project-btn { background: var(--primary); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; transition: .2s; }
+        .save-project-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
         .lang-btn { background: #4c0519; border: 1px solid var(--primary); color: #fbcfe8; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
         .lang-btn:hover { background: var(--primary); color: #fff; }
         .badge { background: #500724; color: #fbcfe8; border: 1px solid #9d174d; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
@@ -85,7 +87,10 @@
 
     <div class="top-bar">
         <span class="badge" id="lblBadge">Virtual Hub - مختبر الشبكات الهندسي التفاعلي</span>
-        <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <button class="save-project-btn" onclick="saveAsProject()" id="saveProjectBtn">📁 <span id="saveProjectLabel">إضافة كمشروع</span></button>
+            <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
+        </div>
     </div>
 
     <div class="main-container">
@@ -233,6 +238,7 @@
             document.querySelectorAll('.delete-btn-ind').forEach(btn => {
                 btn.innerText = `❌ ${t.deleteText}`;
             });
+            updateSaveButton();
         }
 
         function allowDrop(ev) { ev.preventDefault(); }
@@ -274,11 +280,12 @@
             makeElementDraggable(deviceDiv);
             canvas.appendChild(deviceDiv);
 
-            const devObj = { element: deviceDiv, name: devName };
+            const devObj = { element: deviceDiv, name: devName, type: data.type, icon: data.icon };
             devicesArray.push(devObj);
             actionHistory.push({ type: 'device', ref: devObj });
             
             appendOutput(`> Placed ${devName} successfully.`);
+            saveProgress();
         }
 
         function removeSpecificDevice(devName) {
@@ -293,6 +300,7 @@
                     if (hint) hint.style.display = 'block';
                 }
                 appendOutput(`> Removed device: ${devName}`);
+                saveProgress();
             }
         }
 
@@ -317,6 +325,7 @@
                 pos4 = e.clientY;
                 elm.style.top = (elm.offsetTop - pos2) + "px";
                 elm.style.left = (elm.offsetLeft - pos1) + "px";
+                updateConnectionLines();
             }
 
             function closeDragElement() {
@@ -334,37 +343,30 @@
             const selectedCable = document.querySelector('input[name="cable"]:checked').value;
             const port1 = document.getElementById('portSelect1').value;
             const port2 = document.getElementById('portSelect2').value;
-            
             const dev1 = devicesArray[devicesArray.length - 2].element;
             const dev2 = devicesArray[devicesArray.length - 1].element;
-            
-            const canvas = document.getElementById('canvas');
-            const line = document.createElement('div');
-            line.className = 'connection-line';
-            
-            function updateLine() {
+
+            const lineObj = createConnection(dev1, dev2, selectedCable, port1, port2, true);
+            actionHistory.push({ type: 'cable', ref: lineObj });
+            saveProgress();
+        }
+
+        function updateConnectionLines() {
+            linesArray.forEach(lineObj => {
+                const dev1 = lineObj.dev1;
+                const dev2 = lineObj.dev2;
+                if(!dev1 || !dev2) return;
                 const x1 = dev1.offsetLeft + dev1.offsetWidth / 2;
                 const y1 = dev1.offsetTop + dev1.offsetHeight / 2;
                 const x2 = dev2.offsetLeft + dev2.offsetWidth / 2;
                 const y2 = dev2.offsetTop + dev2.offsetHeight / 2;
-
-                const length = Math.hypot(x2 - x1, y2 - y1);
-                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-
-                line.style.width = `${length}px`;
-                line.style.left = `${x1}px`;
-                line.style.top = `${y1}px`;
-                line.style.transform = `rotate(${angle}deg)`;
-            }
-
-            updateLine();
-            canvas.appendChild(line);
-            
-            const lineObj = { element: line };
-            linesArray.push(lineObj);
-            actionHistory.push({ type: 'cable', ref: lineObj });
-
-            appendOutput(`> Linked devices using [${selectedCable}] via ports [${port1} <---> ${port2}]!`);
+                const length = Math.hypot(x2-x1, y2-y1);
+                const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                lineObj.element.style.width = `${length}px`;
+                lineObj.element.style.left = `${x1}px`;
+                lineObj.element.style.top = `${y1}px`;
+                lineObj.element.style.transform = `rotate(${angle}deg)`;
+            });
         }
 
         function undoLastAction() {
@@ -388,7 +390,7 @@
             }
         }
 
-        function clearCanvas() {
+        function clearCanvas(log = true) {
             devicesArray.forEach(d => {
                 if (d.element && d.element.parentNode) d.element.remove();
             });
@@ -402,7 +404,8 @@
 
             const hint = document.getElementById('lblHint');
             if (hint) hint.style.display = 'block';
-            appendOutput(`> Workspace cleared completely.`);
+            if(log) appendOutput(`> Workspace cleared completely.`);
+            if(log) saveProgress();
         }
 
         function appendOutput(text) {
@@ -413,6 +416,140 @@
 
         function checkEnter(e) {
             if (e.key === 'Enter') executeCommand();
+        }
+
+        let currentProjectId = new URLSearchParams(location.search).get('project');
+        let autosaveTimer = null;
+
+        function projectList(){
+            return JSON.parse(localStorage.getItem('myProjects') || '[]');
+        }
+
+        function saveProjectList(list){
+            localStorage.setItem('myProjects', JSON.stringify(list));
+        }
+
+        function saveAsProject(){
+            if(currentProjectId){
+                saveProgress();
+                const label = document.getElementById('saveProjectLabel');
+                if(label) label.textContent = currentLang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓';
+                setTimeout(updateSaveButton, 1500);
+                return;
+            }
+
+            const name = prompt(currentLang === 'ar' ? 'اكتبي اسم المشروع:' : 'Enter project name:');
+            if(!name || !name.trim()) return;
+
+            currentProjectId = 'project_' + Date.now();
+            const projects = projectList();
+            projects.push({
+                id: currentProjectId,
+                name: name.trim(),
+                lab: 'network',
+                status: 'In Progress',
+                createdAt: new Date().toISOString()
+            });
+            saveProjectList(projects);
+            saveProgress();
+
+            history.replaceState(null, '', location.pathname + '?project=' + encodeURIComponent(currentProjectId));
+            updateSaveButton();
+            appendOutput(currentLang === 'ar' ? '> تم إنشاء المشروع وحفظه تلقائياً.' : '> Project created and saved automatically.');
+        }
+
+        function updateSaveButton(){
+            const label = document.getElementById('saveProjectLabel');
+            if(label) label.textContent = currentProjectId ? (currentLang === 'ar' ? 'حفظ التقدم' : 'Save Progress') : (currentLang === 'ar' ? 'إضافة كمشروع' : 'Add as Project');
+        }
+
+        function getSaveKey(){
+            return currentProjectId ? 'projectProgress_' + currentProjectId : null;
+        }
+
+        function collectState(){
+            const devices = devicesArray.map(d => ({
+                name: d.name,
+                type: d.type || '',
+                icon: d.icon || '🖧',
+                left: d.element.style.left,
+                top: d.element.style.top
+            }));
+
+            const lines = linesArray.map(l => ({
+                cable: l.cable || '',
+                port1: l.port1 || '',
+                port2: l.port2 || '',
+                dev1: l.dev1Name || '',
+                dev2: l.dev2Name || ''
+            }));
+
+            return {
+                devices,
+                lines,
+                terminal: document.getElementById('terminalOutput').innerHTML,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        function saveProgress(){
+            const key = getSaveKey();
+            if(!key) return;
+            localStorage.setItem(key, JSON.stringify(collectState()));
+        }
+
+        function startAutoSave(){
+            if(autosaveTimer) return;
+            autosaveTimer = setInterval(saveProgress, 4000);
+            window.addEventListener('beforeunload', saveProgress);
+        }
+
+        function restoreProject(){
+            if(!currentProjectId) return;
+            const saved = JSON.parse(localStorage.getItem(getSaveKey()) || 'null');
+            if(!saved) return;
+
+            clearCanvas(false);
+            const canvas = document.getElementById('canvas');
+            const hint = document.getElementById('lblHint');
+            if(saved.devices && saved.devices.length){
+                if(hint) hint.style.display = 'none';
+                saved.devices.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'draggable-device';
+                    div.style.left = item.left || '20px';
+                    div.style.top = item.top || '20px';
+                    div.innerHTML = `<div class="device-info"><span style="font-size:18px;">${item.icon || '🖧'}</span><span>${item.name}</span></div><button class="delete-btn-ind" onclick="removeSpecificDevice('${String(item.name).replace(/'/g,"\\'")}')">❌ ${currentLang === 'ar' ? 'حذف' : 'Delete'}</button>`;
+                    makeElementDraggable(div);
+                    canvas.appendChild(div);
+                    devicesArray.push({element:div,name:item.name,type:item.type || '',icon:item.icon || '🖧'});
+                });
+            }
+
+            if(saved.lines && saved.lines.length){
+                saved.lines.forEach(item => {
+                    const d1 = devicesArray.find(d => d.name === item.dev1);
+                    const d2 = devicesArray.find(d => d.name === item.dev2);
+                    if(!d1 || !d2) return;
+                    createConnection(d1.element,d2.element,item.cable,item.port1,item.port2,false);
+                });
+            }
+
+            if(saved.terminal) document.getElementById('terminalOutput').innerHTML = saved.terminal;
+            updateConnectionLines();
+            startAutoSave();
+        }
+
+        function createConnection(dev1, dev2, cable, port1, port2, log=true){
+            const canvas = document.getElementById('canvas');
+            const line = document.createElement('div');
+            line.className = 'connection-line';
+            canvas.appendChild(line);
+            const lineObj = {element:line, dev1, dev2, cable, port1, port2, dev1Name:dev1.parentNode ? [...devicesArray].find(d=>d.element===dev1)?.name : '', dev2Name:dev2.parentNode ? [...devicesArray].find(d=>d.element===dev2)?.name : ''};
+            linesArray.push(lineObj);
+            updateConnectionLines();
+            if(log) appendOutput(`> Linked devices using [${cable}] via ports [${port1} <---> ${port2}]!`);
+            return lineObj;
         }
 
         function executeCommand() {
@@ -440,6 +577,13 @@
 
             input.value = '';
         }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            restoreProject();
+            updateSaveButton();
+        });
+
+        window.addEventListener('resize', updateConnectionLines);
     </script>
 
 </body>
