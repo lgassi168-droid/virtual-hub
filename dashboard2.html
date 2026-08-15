@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Virtual Hub Dashboard</title>
+
+<link rel="stylesheet" href="dashboard2.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<!-- ================= Sidebar ================= -->
+
+<aside class="sidebar">
+
+<h2>Virtual Hub</h2>
+
+
+<ul>
+
+    <li class="active" role="link" tabindex="0" onclick="location.href='dashboard2.html'">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+    </li>
+    <li role="link" tabindex="0" onclick="location.href='../simulation/embedded2.html'">
+        <i class="fa-solid fa-laptop-code"></i>
+        Embedded Lab
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/assembly.html'">
+        <i class="fa-solid fa-code"></i>
+        Assembly
+    </li>
+
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/circuits.html'">
+        <i class="fa-solid fa-bolt"></i>
+        Circuit
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/network.html'">
+        <i class="fa-solid fa-microchip"></i>
+        Network Lab
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../profile/profile.html'">
+        <i class="fa-solid fa-user"></i>
+        Profile
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../settings/settings.html'">
+        <i class="fa-solid fa-gear"></i>
+        Settings
+    </li>
+
+</ul>
+
+
+</aside>
+
+<!-- ================= Main ================= -->
+
+<main class="main">
+
+<!-- Top Bar -->
+
+<div class="topbar">
+    <div class="search-wrapper">
+        <label class="sr-only" for="searchInput">Search labs</label>
+        <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+        <input type="search" id="searchInput" placeholder="Search Lab..." oninput="filterLabs()" autocomplete="off" aria-label="Search labs">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+</div>
+
+
+<!-- Cards -->
+
+<section class="cards" aria-label="Dashboard statistics">
+
+<div class="card">
+    <i class="fa-solid fa-flask"></i>
+    <h3>Completed Labs</h3>
+    <h1 id="completedCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-clock"></i>
+    <h3>Simulation Hours</h3>
+    <h1 id="hoursCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-robot"></i>
+    <h3>AI Reviews</h3>
+    <h1 id="reviewsCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-list-check"></i>
+    <h3>Pending Labs</h3>
+    <h1 id="pendingCount">4</h1>
+</div>
+
+</section>
+<!-- ================= Hero ================= -->
+
+<div class="hero">
+
+    <div class="welcome">
+
+        <h1 id="welcomeTitle">Welcome to Virtual Hub</h1>
+        <p id="welcomeMessage">
+            Practice your engineering labs using AI-powered simulations.
+        </p>
+        <div class="welcome-meta" id="welcomeMeta"></div>
+        <button class="welcome-action" id="welcomeAction" type="button" style="display:none;">
+            Continue Project <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+    </div>
+
+    <div class="hero-image">
+
+        <img src="../images/robot.dashboard.png" alt="Robot">
+
+    </div>
+
+</div>
+
+
+<!-- ================= Bottom ================= -->
+
+<div class="bottom">
+
+    <!-- Projects -->
+    <div class="projects">
+
+        <div class="projects-header">
+            <h2>My Projects</h2>
+            <button class="add-project-btn" onclick="openAddProjectModal()">+ Add Project</button>
+        </div>
+
+        <div id="myProjectsList">
+            <p class="empty-note">No projects yet — add one or pick a suggestion below.</p>
+        </div>
+
+        <h3 class="suggestions-title">Suggested Projects</h3>
+
+        <div id="suggestionsList"></div>
+
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity">
+        <h2>Recent Lab Activity</h2>
+        <div id="activityList">
+            <p>No activity yet — complete a lab to see it here.</p>
+        </div>
+    </div>
+
+</div>
+
+<div id="addProjectModal" class="modal-overlay">
+    <div class="modal-box">
+        <button class="modal-close" type="button" onclick="closeAddProjectModal()" aria-label="Close add project dialog">&times;</button>
+        <iframe src="../add-project/add-project.html" class="modal-iframe"></iframe>
+    </div>
+</div>
+
+</main>
+</div>
+
+<script>
+
+if(!localStorage.getItem('resetDone_v1')){
+    localStorage.setItem('aiReviews', 0);
+    localStorage.setItem('simHours', 0);
+    Object.keys(localStorage)
+        .filter(key => key.startsWith('hoursAdded_'))
+        .forEach(key => localStorage.removeItem(key));
+    localStorage.setItem('resetDone_v1', 'true');
+}
+
+    const labsList = [
+        { name: "Embedded Lab", link: "../simulation/embedded2.html", icon: "fa-laptop-code" },
+        { name: "Assembly",     link: "../simulation/assembly.html",  icon: "fa-code" },
+        { name: "Circuit",      link: "../simulation/circuits.html",  icon: "fa-bolt" },
+        { name: "Network Lab",  link: "../simulation/network.html",   icon: "fa-microchip" }
+    ];
+
+    function filterLabs(){
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const resultsBox = document.getElementById('searchResults');
+
+        resultsBox.innerHTML = '';
+
+        if(query.trim() === ''){
+            resultsBox.style.display = 'none';
+            return;
+        }
+
+        const matches = labsList.filter(lab => lab.name.toLowerCase().includes(query));
+
+        if(matches.length === 0){
+            resultsBox.innerHTML = '<div class="search-item no-match">No labs found</div>';
+        } else {
+            matches.forEach(lab => {
+                resultsBox.innerHTML += `
+                    <div class="search-item" onclick="location.href='${lab.link}'">
+                        <i class="fa-solid ${lab.icon}"></i>
+                        <span>${lab.name}</span>
+                    </div>
+                `;
+            });
+        }
+
+        resultsBox.style.display = 'block';
+    }
+
+    document.addEventListener('click', function(e){
+        if(!e.target.closest('.search-wrapper')){
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    });
+
+function updateStats(){
+    const myProjects = getMyProjects();
+
+    const completed = myProjects.filter(p => p.status === "status-completed").length;
+    const pending = myProjects.length - completed;
+
+    const reviews = parseInt(localStorage.getItem('aiReviews')) || 0;
+    const hours = parseInt(localStorage.getItem('simHours')) || 0;
+
+    document.getElementById('completedCount').textContent = completed;
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('reviewsCount').textContent = reviews;
+    document.getElementById('hoursCount').textContent = hours + 'h';
+}
+    
+    function updateActivity(){
+        const activity = JSON.parse(localStorage.getItem('recentActivity')) || [];
+        const listBox = document.getElementById('activityList');
+
+        if(activity.length === 0){
+            listBox.innerHTML = '<p>No activity yet — complete a lab to see it here.</p>';
+            return;
+        }
+
+        listBox.innerHTML = activity.map(a =>
+            `<p>✔ ${a.lab} Completed — ${a.time}</p>`
+        ).join('');
+    }
+
+    function cycleStatus(el){
+        const states = [
+            { text: "Completed",   class: "status-completed" },
+            { text: "In Progress", class: "status-progress" },
+            { text: "Testing",     class: "status-testing" }
+        ];
+
+        let currentIndex = states.findIndex(s => el.classList.contains(s.class));
+        let nextIndex = (currentIndex + 1) % states.length;
+
+        el.classList.remove(states[currentIndex].class);
+        el.classList.add(states[nextIndex].class);
+        el.textContent = states[nextIndex].text;
+    }
+
+    const originalSuggestionsList = [
+    { name: "IoT Motion Sensor",    lab: "embedded" },
+    { name: "ESP32 Smart Home",     lab: "embedded" },
+    { name: "Assembly Calculator",  lab: "assembly" },
+    { name: "Circuit Simulation",   lab: "circuit"  },
+    { name: "Arduino Traffic Light",lab: "network"  }
+];
+
+let suggestions = [...originalSuggestionsList];
+
+    const labLabels = {
+        embedded: "Embedded Lab",
+        assembly: "Assembly",
+        circuit:  "Circuit",
+        network:  "Network Lab"
+    };
+
+    const labLinks = {
+        embedded: "../simulation/embedded2.html",
+        assembly: "../simulation/assembly.html",
+        circuit:  "../simulation/circuits.html",
+        network:  "../simulation/network.html"
+    };
+
+    const statusLabels = {
+        "status-completed": "Completed",
+        "status-progress": "In Progress",
+        "status-testing": "Testing"
+    };
+
+    function getMyProjects(){
+        return JSON.parse(localStorage.getItem('myProjects')) || [];
+    }
+
+    function saveMyProjects(list){
+        localStorage.setItem('myProjects', JSON.stringify(list));
+    }
+
+    function renderProjects(){
+        let myProjects = getMyProjects();
+
+
+        let needsSave = false;
+        myProjects.forEach(p => {
+            if(!p.id){ p.id = Date.now().toString() + Math.floor(Math.random()*1000); needsSave = true; }
+        });
+        if(needsSave) saveMyProjects(myProjects);
+
+        const listBox = document.getElementById('myProjectsList');
+
+        if(myProjects.length === 0){
+            listBox.innerHTML = '<p class="empty-note">No projects yet — add one or pick a suggestion below.</p>';
+        } else {
+            listBox.innerHTML = myProjects.map((p, i) => `
+                <div class="project">
+                    <span class="project-name-link" onclick="location.href='${labLinks[p.lab]}?project=${p.id}'">${p.name}</span>
+                    <span class="lab-tag">${labLabels[p.lab]}</span>
+                    <span class="status ${p.status}" onclick="cycleProjectStatus(${i})">${statusLabels[p.status]}</span>
+                    <span class="delete-project-btn" onclick="deleteProject(${i})" title="Delete project">
+                        <i class="fa-solid fa-trash"></i>
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        const suggBox = document.getElementById('suggestionsList');
+        suggBox.innerHTML = suggestions.map(s => `
+            <div class="suggestion-item">
+                <div>
+                    <span class="suggestion-name">${s.name}</span>
+                    <span class="lab-tag">${labLabels[s.lab]}</span>
+                </div>
+                <button class="add-suggestion-btn" onclick="addSuggestion('${s.name}', '${s.lab}')">+ Add</button>
+            </div>
+        `).join('');
+    }
+function addSuggestion(name, lab){
+    const myProjects = getMyProjects();
+    myProjects.unshift({ id: Date.now().toString(), name, lab, status: "status-progress" });
+    saveMyProjects(myProjects);
+
+    const suggIndex = suggestions.findIndex(s => s.name === name && s.lab === lab);
+    if(suggIndex !== -1){
+        suggestions.splice(suggIndex, 1);
+    }
+
+    renderProjects();
+    updateStats();
+}
+
+ function deleteProject(index){
+    const myProjects = getMyProjects();
+    const removed = myProjects[index];
+
+    myProjects.splice(index, 1);
+    saveMyProjects(myProjects);
+
+    if(removed.id){
+        localStorage.removeItem('projectProgress_' + removed.id);
+    }
+
+    if(removed.status === "status-completed"){
+        let activity = JSON.parse(localStorage.getItem('recentActivity')) || [];
+        const idx = activity.findIndex(a => a.lab === removed.name);
+        if(idx !== -1){
+            activity.splice(idx, 1);
+            localStorage.setItem('recentActivity', JSON.stringify(activity));
+        }
+    }
+
+    const originalSuggestion = originalSuggestionsList.find(s => s.name === removed.name && s.lab === removed.lab);
+    if(originalSuggestion && !suggestions.some(s => s.name === removed.name)){
+        suggestions.push(originalSuggestion);
+    }
+
+    renderProjects();
+    updateActivity();
+    updateStats();
+}
+
+    function openAddProjectModal(){
+        document.getElementById('addProjectModal').style.display = 'flex';
+    }
+
+    function closeAddProjectModal(){
+    document.getElementById('addProjectModal').style.display = 'none';
+    renderProjects();
+    updateStats();
+}
+
+function cycleProjectStatus(index){
+    const order = ["status-completed", "status-progress", "status-testing"];
+    const myProjects = getMyProjects();
+
+    let current = order.indexOf(myProjects[index].status);
+    let next = (current + 1) % order.length;
+
+    const wasCompleted = myProjects[index].status === "status-completed";
+    const willBeCompleted = order[next] === "status-completed";
+    myProjects[index].status = order[next];
+    saveMyProjects(myProjects);
+
+    let reviews = parseInt(localStorage.getItem('aiReviews')) || 0;
+    let hours = parseInt(localStorage.getItem('simHours')) || 0;
+
+    if(willBeCompleted && !wasCompleted){
+        // المشروع وصل Completed جديد → زيادة مراجعة وساعات
+        reviews += 1;
+        const hoursAdded = Math.floor(Math.random() * 2) + 1;
+        hours += hoursAdded;
+        localStorage.setItem('hoursAdded_project_' + myProjects[index].id, hoursAdded);
+    } else if(wasCompleted && !willBeCompleted){
+        // المشروع طلع من Completed → نرجع ننقص نفس القيم
+        reviews = Math.max(0, reviews - 1);
+        const hoursAddedKey = 'hoursAdded_project_' + myProjects[index].id;
+        const hoursAdded = parseInt(localStorage.getItem(hoursAddedKey)) || 1;
+        hours = Math.max(0, hours - hoursAdded);
+        localStorage.removeItem(hoursAddedKey);
+    }
+
+    localStorage.setItem('aiReviews', reviews);
+    localStorage.setItem('simHours', hours);
+
+    // نحدّث Recent Lab Activity بنفس منطق اللابات: يضاف سطر لما يوصل Completed، وينشال لما يطلع منها
+    let activity = JSON.parse(localStorage.getItem('recentActivity')) || [];
+    const projectName = myProjects[index].name;
+
+    if(willBeCompleted){
+        activity.unshift({ lab: projectName, time: new Date().toLocaleString() });
+        activity = activity.slice(0, 4);
+    } else if(wasCompleted){
+        const idx = activity.findIndex(a => a.lab === projectName);
+        if(idx !== -1) activity.splice(idx, 1);
+    }
+    localStorage.setItem('recentActivity', JSON.stringify(activity));
+
+    renderProjects();
+    updateActivity();
+    updateStats();
+}
+
+    window.addEventListener('DOMContentLoaded', function(){
+        updateStats();
+        updateActivity();
+        renderProjects();
+    });
+
+</script>
+
+<script src="dashboard2.js"></script>
+
+</body>
+
+</html>
