@@ -1,421 +1,655 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="htmlRoot">
+<html lang="en" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Hub | Professional Network Lab</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Virtual Hub | Advanced Network Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #ec4899;
-            --primary-hover: #db2777;
-            --bg-color: #0b0b12;
-            --panel-bg: #13131f;
-            --canvas-bg: #0f0f18;
-            --text-main: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --border-color: #27273a;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --canvas-bg: #090d16;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
             --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-yellow: #f59e0b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 15px; user-select: none; }
-        
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .lang-btn { background: #4c0519; border: 1px solid var(--primary); color: #fbcfe8; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 10px; user-select: none; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .badge { background: linear-gradient(135deg, #312e81, #3730a3); color: #e0e7ff; border: 1px solid #4f46e5; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .top-actions { display: flex; gap: 6px; }
+        .lang-btn { background: #312e81; border: 1px solid var(--primary); color: #e0e7ff; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
         .lang-btn:hover { background: var(--primary); color: #fff; }
-        .badge { background: #500724; color: #fbcfe8; border: 1px solid #9d174d; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 
-        .main-container { display: flex; gap: 15px; flex: 1; height: 56vh; margin-bottom: 12px; }
+        .main-layout { display: grid; grid-template-columns: 260px 1fr 280px; gap: 10px; flex: 1; height: 60vh; margin-bottom: 8px; }
 
-        /* شريط الأدوات */
-        .toolbox { width: 290px; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        .toolbox h3 { font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 4px; text-transform: uppercase; }
-        
-        .tool-category { display: flex; flex-direction: column; gap: 5px; }
-        .tool-item { background: #181826; border: 1px solid var(--border-color); padding: 7px 10px; border-radius: 6px; cursor: grab; text-align: right; font-size: 12px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
-        [dir="ltr"] .tool-item { text-align: left; }
-        .tool-item:active { cursor: grabbing; }
-        .tool-item:hover { border-color: var(--primary); background: #500724; color: #fbcfe8; }
-        
-        /* خيارات الكيبلات */
-        .cable-option { background: #261022; border-color: #831843; cursor: pointer; }
+        .panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+        .panel-title { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; letter-spacing: 0.5px; }
+
+        .tool-item { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #475569; padding: 8px 10px; border-radius: 6px; cursor: grab; font-size: 12px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
+        .tool-item:hover { border-color: var(--primary); background: linear-gradient(135deg, #312e81, #1e293b); color: #fff; }
+        .cable-option { background: #0f172a; border-color: #334155; cursor: pointer; font-size: 11px; padding: 6px 10px; }
         .cable-option input[type="radio"] { accent-color: var(--primary); }
 
-        .connect-btn { background: var(--primary); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: center; margin-top: 5px; font-size: 13px; transition: 0.2s; }
-        .connect-btn:hover { background: var(--primary-hover); }
+        .mode-indicator { background: #0f172a; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-size: 11px; font-family: 'Fira Code', monospace; }
+        .mode-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-top: 4px; }
+        .mode-normal { background: #1e3a5f; color: #60a5fa; }
+        .mode-connecting { background: #7f1d1d; color: #fca5a5; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
-        /* مساحة العمل وأزرار التحكم */
-        .canvas-wrapper { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .canvas-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .action-btn { background: #4c0519; border: 1px solid #831843; color: #fbcfe8; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .action-btn:hover { background: #db2777; color: #fff; }
+        .canvas-wrapper { display: flex; flex-direction: column; gap: 6px; }
+        .canvas-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .action-btn { background: #312e81; border: 1px solid #4f46e5; color: #e0e7ff; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background: var(--primary); color: #fff; }
 
-        .workspace-canvas { flex: 1; background: var(--canvas-bg); border: 2px dashed var(--border-color); border-radius: 10px; position: relative; overflow: hidden; }
-        .canvas-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); font-size: 13px; text-align: center; pointer-events: none; }
+        .workspace-canvas { flex: 1; background: var(--canvas-bg); border: 2px dashed var(--border-color); border-radius: 10px; position: relative; overflow: hidden; background-image: radial-gradient(rgba(79,70,229,0.15) 1px, transparent 1px); background-size: 24px 24px; cursor: crosshair; }
+        .canvas-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--text-secondary); font-size: 13px; text-align: center; pointer-events: none; line-height: 1.8; }
 
-        /* الأجهزة المتحركة */
-        .draggable-device { position: absolute; background: #1f1224; border: 1px solid #9d174d; border-radius: 8px; padding: 8px 12px; text-align: center; cursor: move; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 140px; z-index: 2; }
-        .device-info { display: flex; align-items: center; gap: 8px; }
-        .draggable-device span { font-size: 12px; color: #fce7f3; font-weight: 600; }
-        
-        /* زر الحذف الفردي لكل جهاز */
-        .delete-btn-ind { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); border-radius: 4px; font-size: 10px; padding: 2px 6px; cursor: pointer; transition: 0.2s; }
+        .draggable-device {
+            position: absolute;
+            background: linear-gradient(150deg, #1e293b, #0f172a);
+            border: 2px solid #475569;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: move;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 160px;
+            z-index: 2;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .draggable-device:hover { border-color: var(--primary); }
+        .draggable-device.selected-for-connect { border-color: var(--accent-yellow); box-shadow: 0 0 15px rgba(245,158,11,0.5); }
+        .draggable-device.connecting-target:hover { border-color: var(--accent-green); box-shadow: 0 0 15px rgba(34,197,94,0.5); cursor: pointer; }
+
+        .device-top-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .device-info { display: flex; align-items: center; gap: 6px; }
+        .device-icon-box { font-size: 16px; background: #0f172a; padding: 2px 5px; border-radius: 4px; border: 1px solid #334155; }
+        .device-name { font-size: 11px; color: #f8fafc; font-weight: 700; }
+        .device-ip { font-size: 9px; color: #60a5fa; font-family: 'Fira Code', monospace; margin-top: 1px; cursor: pointer; }
+        .device-ip:hover { color: #93c5fd; text-decoration: underline; }
+
+        .device-hardware-panel { display: flex; justify-content: space-between; align-items: center; background: #090d16; padding: 3px 6px; border-radius: 4px; border: 1px solid #1e293b; }
+        .hw-led { width: 6px; height: 6px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 6px var(--accent-green); animation: pulseLed 1.8s infinite; display: inline-block; margin-right: 3px; }
+        .hw-led.blue { background-color: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
+        .hw-label { font-size: 9px; color: #94a3b8; font-family: monospace; }
+        @keyframes pulseLed { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.85)} }
+
+        .connect-device-btn { background: rgba(34,197,94,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); border-radius: 4px; font-size: 9px; padding: 2px 5px; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 2px; }
+        .connect-device-btn:hover { background: var(--accent-green); color: #000; }
+        .connect-device-btn.active { background: var(--accent-yellow); color: #000; border-color: var(--accent-yellow); }
+
+        .delete-btn-ind { background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid var(--accent-red); border-radius: 4px; font-size: 9px; padding: 2px 5px; cursor: pointer; transition: 0.2s; }
         .delete-btn-ind:hover { background: var(--accent-red); color: #fff; }
 
-        /* خطوط الكيبلات */
-        .connection-line { position: absolute; background: #f472b6; height: 3px; transform-origin: 0 0; z-index: 1; pointer-events: none; }
+        .connections-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
+        .connection-card { background: #0f172a; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px 8px; font-size: 10px; font-family: 'Fira Code', monospace; display: flex; justify-content: space-between; align-items: center; }
+        .cable-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .del-wire-btn { background: rgba(239,68,68,0.2); color: var(--accent-red); border: 1px solid var(--accent-red); border-radius: 3px; font-size: 9px; padding: 1px 4px; cursor: pointer; }
+        .del-wire-btn:hover { background: var(--accent-red); color: #fff; }
 
-        /* شاشة الأوامر السفلية */
-        .terminal-container { background: #07070c; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; height: 160px; }
+        .ai-section { border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 2px; }
+        .ai-btn { background: linear-gradient(90deg, #4f46e5, #06b6d4); color: white; border: none; padding: 7px; border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; font-size: 11px; transition: 0.2s; }
+        .ai-btn:hover { opacity: 0.9; box-shadow: 0 0 12px rgba(79,70,229,0.5); }
+        .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ai-output { background: #0f172a; border: 1px solid #4f46e5; border-radius: 6px; padding: 8px; font-size: 10px; line-height: 1.6; color: #e2e8f0; margin-top: 5px; max-height: 150px; overflow-y: auto; display: none; }
+
+        .terminal-container { background: #090d16; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; height: 145px; }
         .terminal-header { color: var(--text-secondary); font-size: 11px; margin-bottom: 4px; font-weight: 600; display: flex; justify-content: space-between; }
-        .terminal-output { flex: 1; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #ffffff; direction: ltr; text-align: left; margin-bottom: 6px; line-height: 1.4; }
+        .terminal-output { flex: 1; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 11px; color: #22c55e; direction: ltr; text-align: left; margin-bottom: 5px; line-height: 1.5; background: #020617; padding: 5px; border-radius: 4px; }
         .terminal-input-row { display: flex; gap: 8px; direction: ltr; }
-        .terminal-input-row input { flex: 1; background: #13131f; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 13px; }
+        .terminal-input-row input { flex: 1; background: #1e293b; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px 10px; color: #fff; font-family: 'Fira Code', monospace; font-size: 12px; }
         .terminal-input-row input:focus { outline: none; border-color: var(--primary); }
-        .terminal-input-row button { background: var(--primary); color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        .terminal-input-row button:hover { background: var(--primary-hover); }
+        .terminal-input-row button { background: var(--primary); color: white; border: none; padding: 5px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 11px; }
+
+        .ip-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+        .ip-modal.show { display: flex; }
+        .ip-modal-box { background: #1e293b; border: 1px solid var(--primary); border-radius: 12px; padding: 24px; width: 320px; }
+        .ip-modal-box h3 { color: var(--primary); margin-bottom: 12px; font-size: 14px; }
+        .ip-modal-box input { width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 13px; margin-bottom: 10px; }
+        .ip-modal-box input:focus { outline: none; border-color: var(--primary); }
+        .ip-modal-actions { display: flex; gap: 8px; }
+        .ip-modal-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
+        .btn-save-ip { background: var(--primary); color: white; }
+        .btn-cancel-ip { background: #334155; color: #aaa; }
+
+        svg.wire-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <span class="badge" id="lblBadge">Virtual Hub - مختبر الشبكات الهندسي التفاعلي</span>
-        <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
+<div class="top-bar">
+    <span class="badge" id="lblBadge">⚡ Virtual Hub — Advanced Network Lab</span>
+    <div class="top-actions">
+        <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">العربية</button>
+        <button class="action-btn" onclick="undoLastAction()">↩️ Undo</button>
+        <button class="action-btn" onclick="clearCanvas()" style="color:#f87171;">🗑️ Clear</button>
     </div>
+</div>
 
-    <div class="main-container">
-        <!-- شريط الأدوات -->
-        <div class="toolbox">
-            <h3 id="lblDevHeader">أجهزة الشبكات النشطة</h3>
-            <div class="tool-category">
-                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Router" data-icon="🛜">🛜 <span id="tRouter">Router (راوتر)</span></div>
-                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Switch" data-icon="🖧">🖧 <span id="tSwitch">Switch (سويتش)</span></div>
-                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="PC" data-icon="💻">💻 <span id="tPC">PC (حاسوب)</span></div>
-                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Server" data-icon="🖥️">🖥️ <span id="tServer">Server (خادم)</span></div>
-                <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="AccessPoint" data-icon="📡">📡 <span id="tAP">Access Point (واي فاي)</span></div>
-            </div>
+<div class="main-layout">
+    <!-- Left: Toolbox -->
+    <div class="panel">
+        <div class="panel-title" id="lblDevHeader">Network Devices</div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Router" data-icon="🛜">🛜 <span>Core Router</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Switch" data-icon="🖧">🖧 <span>Managed Switch</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="PC" data-icon="💻">💻 <span>Workstation</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Server" data-icon="🖥️">🖥️ <span>Enterprise Server</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="AccessPoint" data-icon="📡">📡 <span>Wireless AP</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Firewall" data-icon="🔥">🔥 <span>Firewall</span></div>
+        <div class="tool-item" draggable="true" ondragstart="drag(event)" data-type="Cloud" data-icon="☁️">☁️ <span>Cloud / ISP</span></div>
 
-            <h3 id="lblCableHeader">اختر نوع الكيبل</h3>
-            <div class="tool-category">
-                <label class="tool-item cable-option"><input type="radio" name="cable" value="Straight-Through" checked> 🔌 Straight-Through</label>
-                <label class="tool-item cable-option"><input type="radio" name="cable" value="Crossover"> 🔌 Crossover</label>
-                <label class="tool-item cable-option"><input type="radio" name="cable" value="Serial WAN"> ⚡ Serial WAN</label>
-                <label class="tool-item cable-option"><input type="radio" name="cable" value="Fiber Optic"> 💡 Fiber Optic</label>
-                <label class="tool-item cable-option"><input type="radio" name="cable" value="Console"> 💻 Console Cable</label>
-                
-                <button class="connect-btn" onclick="connectSelectedCable()" id="lblConnectBtn">ربط الكيبل المختار</button>
-            </div>
-        </div>
+        <div class="panel-title" style="margin-top:4px;" id="lblCableHeader">Cable Type</div>
+        <label class="tool-item cable-option"><input type="radio" name="cable" value="straight" checked> 🟢 Straight-Through</label>
+        <label class="tool-item cable-option"><input type="radio" name="cable" value="crossover"> 🔵 Crossover</label>
+        <label class="tool-item cable-option"><input type="radio" name="cable" value="fiber"> 🟡 Fiber Optic</label>
+        <label class="tool-item cable-option"><input type="radio" name="cable" value="serial"> 🔴 Serial WAN</label>
+        <label class="tool-item cable-option"><input type="radio" name="cable" value="console"> ⚫ Console</label>
 
-        <!-- مساحة العمل وأزرار التحكم -->
-        <div class="canvas-wrapper">
-            <div class="canvas-actions">
-                <button class="action-btn" onclick="undoLastAction()" id="lblUndo">↩️ تراجع (حذف آخر خطوة)</button>
-                <button class="action-btn" onclick="clearCanvas()" id="lblClear">🗑️ مسح الكل</button>
-            </div>
-            <div class="workspace-canvas" id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
-                <div class="canvas-hint" id="lblHint">اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!</div>
-            </div>
+        <div class="mode-indicator">
+            <div style="color:#94a3b8; font-size:10px;">Connection Mode:</div>
+            <div class="mode-badge mode-normal" id="modeDisplay">🖱️ Drag & Drop</div>
+            <div style="font-size:9px; color:#94a3b8; margin-top:4px;" id="modeHint">Click "Connect" on a device to start linking</div>
         </div>
     </div>
 
-    <!-- نافذة الأوامر والتنفيذ -->
-    <div class="terminal-container">
-        <div class="terminal-header">
-            <span id="lblTerminalTitle">Virtual Hub CLI (سطر الأوامر واختبارات الـ Ping)</span>
-            <span style="color: var(--primary);" id="lblTerminalSub">اكتب هنا: ping [IP] أو help</span>
-        </div>
-        <div id="terminalOutput" class="terminal-output">
-            Virtual Hub OS Kernel v5.4 - Ready.<br>
-            > جرب كتابة أمر الفحص في الأسفل: ping 192.168.1.1 واضغط Enter
-        </div>
-        <div class="terminal-input-row">
-            <input type="text" id="commandInput" placeholder="Type command here (e.g., ping 192.168.1.1)..." onkeypress="checkEnter(event)">
-            <button onclick="executeCommand()" id="lblSend">تنفيذ</button>
+    <!-- Center: Canvas -->
+    <div class="canvas-wrapper">
+        <div class="workspace-canvas" id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
+            <svg class="wire-svg" id="wireSvg"></svg>
+            <div class="canvas-hint" id="lblHint">
+                🖥️ Drag devices here<br>
+                <span style="font-size:11px;">Click "Connect" on a device → click another to link them</span>
+            </div>
         </div>
     </div>
 
-    <script>
-        let currentLang = 'ar';
-        let devicesArray = [];
-        let linesArray = [];
-        let actionHistory = [];
+    <!-- Right: Connections + AI -->
+    <div class="panel">
+        <div class="panel-title">Active Connections (<span id="connCount">0</span>)</div>
+        <div class="connections-list" id="connectionsList">
+            <div style="color:#64748b; font-size:11px; text-align:center; padding:20px 0;">No connections yet</div>
+        </div>
 
-        const translations = {
-            ar: {
-                htmlDir: "rtl",
-                badge: "Virtual Hub - مختبر الشبكات الهندسي التفاعلي",
-                devHeader: "أجهزة الشبكات النشطة",
-                cableHeader: "اختر نوع الكيبل",
-                tRouter: "Router (راوتر)",
-                tSwitch: "Switch (سويتش)",
-                tPC: "PC (حاسوب)",
-                tServer: "Server (خادم)",
-                tAP: "Access Point (واي فاي)",
-                connectBtn: "ربط الكيبل المختار",
-                undo: "↩️ تراجع (حذف آخر خطوة)",
-                clear: "🗑️ مسح الكل",
-                hint: "اسحب الأجهزة هنا، اختر الكيبل من القائمة، واضغط زر الربط!",
-                terminalTitle: "Virtual Hub CLI (سطر الأوامر واختبارات الـ Ping)",
-                terminalSub: "اكتب هنا: ping [IP] أو help",
-                send: "تنفيذ",
-                deleteText: "حذف"
-            },
-            en: {
-                htmlDir: "ltr",
-                badge: "Virtual Hub - Interactive Network Lab",
-                devHeader: "Network Devices",
-                cableHeader: "Select Cable Type",
-                tRouter: "Router",
-                tSwitch: "Switch",
-                tPC: "PC",
-                tServer: "Server",
-                tAP: "Access Point",
-                connectBtn: "Connect Selected Cable",
-                undo: "↩️ Undo (Remove Last Action)",
-                clear: "🗑️ Clear All",
-                hint: "Drag devices here, select a cable, and click connect!",
-                terminalTitle: "Virtual Hub CLI & Ping Testing",
-                terminalSub: "Type here: ping [IP] or help",
-                send: "Run",
-                deleteText: "Delete"
-            }
-        };
+        <div class="ai-section">
+            <div class="panel-title" style="margin-bottom:5px;">🤖 AI Troubleshooting Analyzer</div>
+            <button class="ai-btn" id="aiBtn" onclick="analyzeTopology()">Analyze Network Errors</button>
+            <div class="ai-output" id="aiOutput"></div>
+        </div>
+    </div>
+</div>
 
-        function toggleLanguage() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            const t = translations[currentLang];
-            
-            document.getElementById('htmlRoot').setAttribute('dir', t.htmlDir);
-            document.getElementById('langBtn').innerText = currentLang === 'ar' ? 'English' : 'العربية';
-            document.getElementById('lblBadge').innerText = t.badge;
-            document.getElementById('lblDevHeader').innerText = t.devHeader;
-            document.getElementById('lblCableHeader').innerText = t.cableHeader;
-            document.getElementById('tRouter').innerText = t.tRouter;
-            document.getElementById('tSwitch').innerText = t.tSwitch;
-            document.getElementById('tPC').innerText = t.tPC;
-            document.getElementById('tServer').innerText = t.tServer;
-            document.getElementById('tAP').innerText = t.tAP;
-            document.getElementById('lblConnectBtn').innerText = t.connectBtn;
-            document.getElementById('lblUndo').innerText = t.undo;
-            document.getElementById('lblClear').innerText = t.clear;
-            document.getElementById('lblHint').innerText = t.hint;
-            document.getElementById('lblTerminalTitle').innerText = t.terminalTitle;
-            document.getElementById('lblTerminalSub').innerText = t.terminalSub;
-            document.getElementById('lblSend').innerText = t.send;
+<!-- Terminal -->
+<div class="terminal-container">
+    <div class="terminal-header">
+        <span>Virtual Hub CLI — Network Diagnostics</span>
+        <span style="color:var(--primary);">ping [IP] | show devices | help</span>
+    </div>
+    <div id="terminalOutput" class="terminal-output">Virtual Hub OS v6.0 — Ready.<br>&gt; Drag devices and connect them, then use CLI to test connectivity.</div>
+    <div class="terminal-input-row">
+        <input type="text" id="commandInput" placeholder="Enter command..." onkeypress="checkEnter(event)">
+        <button onclick="executeCommand()">Run</button>
+    </div>
+</div>
 
-            // تحديث نصوص أزرار الحذف للأجهزة الموجودة حالياً
-            document.querySelectorAll('.delete-btn-ind').forEach(btn => {
-                btn.innerText = `❌ ${t.deleteText}`;
-            });
-        }
+<!-- IP Modal -->
+<div class="ip-modal" id="ipModal">
+    <div class="ip-modal-box">
+        <h3>🌐 Set IP Address</h3>
+        <input type="text" id="ipInput" placeholder="e.g. 192.168.1.1" />
+        <input type="text" id="subnetInput" placeholder="Subnet: 255.255.255.0" />
+        <div class="ip-modal-actions">
+            <button class="btn-save-ip" onclick="saveIP()">Save</button>
+            <button class="btn-cancel-ip" onclick="closeIPModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 
-        function allowDrop(ev) { ev.preventDefault(); }
+<script>
+    let devicesArray = [];
+    let linesArray = [];
+    let actionHistory = [];
+    let connectingFrom = null;
+    let devCounter = 0;
+    let currentLang = 'en';
+    let editingDeviceId = null;
 
-        function drag(ev) {
-            ev.dataTransfer.setData("text/plain", JSON.stringify({
-                type: ev.target.dataset.type,
-                icon: ev.target.dataset.icon
-            }));
-        }
+    const CABLE_COLORS = {
+        straight: '#22c55e',
+        crossover: '#3b82f6',
+        fiber: '#eab308',
+        serial: '#ef4444',
+        console: '#94a3b8'
+    };
 
-        function drop(ev) {
-            ev.preventDefault();
-            const canvas = document.getElementById('canvas');
-            const hint = document.getElementById('lblHint');
-            if (hint) hint.style.display = 'none';
+    function toggleLanguage() {
+        currentLang = currentLang === 'en' ? 'ar' : 'en';
+        const isAr = currentLang === 'ar';
+        document.getElementById('htmlRoot').setAttribute('dir', isAr ? 'rtl' : 'ltr');
+        document.getElementById('langBtn').innerText = isAr ? 'English' : 'العربية';
+        document.getElementById('lblBadge').innerText = isAr ? '⚡ Virtual Hub — مختبر الشبكات' : '⚡ Virtual Hub — Advanced Network Lab';
+        document.getElementById('lblDevHeader').innerText = isAr ? 'أجهزة الشبكة' : 'Network Devices';
+        document.getElementById('lblCableHeader').innerText = isAr ? 'نوع الكيبل' : 'Cable Type';
+        document.getElementById('modeHint').innerText = isAr ? 'اضغط "توصيل" على جهاز لبدء الربط' : 'Click "Connect" on a device to start linking';
+        document.getElementById('lblHint').innerHTML = isAr
+            ? '🖥️ اسحب الأجهزة هنا<br><span style="font-size:11px;">اضغط "توصيل" على جهاز ثم جهاز آخر لربطهم</span>'
+            : '🖥️ Drag devices here<br><span style="font-size:11px;">Click "Connect" on a device → click another to link them</span>';
+    }
 
-            const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
-            const rect = canvas.getBoundingClientRect();
-            const x = ev.clientX - rect.left - 70;
-            const y = ev.clientY - rect.top - 30;
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) {
+        ev.dataTransfer.setData("text/plain", JSON.stringify({
+            type: ev.target.dataset.type || ev.target.closest('[data-type]')?.dataset.type,
+            icon: ev.target.dataset.icon || ev.target.closest('[data-icon]')?.dataset.icon
+        }));
+    }
 
-            const deviceDiv = document.createElement('div');
-            deviceDiv.className = 'draggable-device';
-            deviceDiv.style.left = `${Math.max(10, x)}px`;
-            deviceDiv.style.top = `${Math.max(10, y)}px`;
-            const devName = `${data.type} 0${devicesArray.length + 1}`;
-            
-            const deleteLabel = currentLang === 'ar' ? 'حذف' : 'Delete';
+    function drop(ev) {
+        ev.preventDefault();
+        const canvas = document.getElementById('canvas');
+        document.getElementById('lblHint').style.display = 'none';
 
-            deviceDiv.innerHTML = `
+        let raw = ev.dataTransfer.getData("text/plain");
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (!data.type) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.max(10, ev.clientX - rect.left - 80);
+        const y = Math.max(10, ev.clientY - rect.top - 40);
+
+        devCounter++;
+        const id = `dev_${devCounter}`;
+        const devName = `${data.type}-${devCounter}`;
+        const defaultIP = `192.168.${devCounter}.1`;
+
+        const el = document.createElement('div');
+        el.className = 'draggable-device';
+        el.id = id;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.dataset.devType = data.type;
+        el.dataset.devName = devName;
+        el.dataset.ip = defaultIP;
+        el.dataset.subnet = '255.255.255.0';
+
+        el.innerHTML = buildDeviceHTML(id, data.icon, devName, defaultIP);
+
+        makeDraggable(el);
+        canvas.appendChild(el);
+
+        el.querySelector('.connect-device-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            startConnect(id);
+        });
+        el.querySelector('.device-ip').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openIPModal(id);
+        });
+        el.querySelector('.delete-btn-ind').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeDevice(id);
+        });
+
+        el.addEventListener('click', () => completeConnect(id));
+
+        const devObj = { id, element: el, type: data.type, name: devName, ip: defaultIP };
+        devicesArray.push(devObj);
+        actionHistory.push({ type: 'device', id });
+        appendOutput(`> Device added: ${devName} [${defaultIP}]`);
+    }
+
+    function buildDeviceHTML(id, icon, name, ip) {
+        return `
+            <div class="device-top-row">
                 <div class="device-info">
-                    <span style="font-size: 18px;">${data.icon}</span>
-                    <span>${devName}</span>
+                    <div class="device-icon-box">${icon}</div>
+                    <div>
+                        <div class="device-name">${name}</div>
+                        <div class="device-ip">📍 ${ip}</div>
+                    </div>
                 </div>
-                <button class="delete-btn-ind" onclick="removeSpecificDevice('${devName}')">❌ ${deleteLabel}</button>
-            `;
+                <button class="delete-btn-ind">✕</button>
+            </div>
+            <div class="device-hardware-panel">
+                <div><span class="hw-led"></span><span class="hw-led blue"></span></div>
+                <span class="hw-label">PWR/ACT</span>
+            </div>
+            <button class="connect-device-btn">🔗 Connect</button>
+        `;
+    }
 
-            makeElementDraggable(deviceDiv);
-            canvas.appendChild(deviceDiv);
-
-            const devObj = { element: deviceDiv, name: devName };
-            devicesArray.push(devObj);
-            actionHistory.push({ type: 'device', ref: devObj });
-            
-            appendOutput(`> Placed ${devName} successfully.`);
+    function startConnect(id) {
+        if (connectingFrom === id) {
+            cancelConnect();
+            return;
         }
+        connectingFrom = id;
 
-        function removeSpecificDevice(devName) {
-            const targetDev = devicesArray.find(d => d.name === devName);
-            if (targetDev) {
-                targetDev.element.remove();
-                devicesArray = devicesArray.filter(d => d !== targetDev);
-                actionHistory = actionHistory.filter(act => act.ref !== targetDev);
-                
-                // إذا لم يتبق أجهزة، أظهر الإرشاد مجدداً
-                if (devicesArray.length === 0) {
-                    const hint = document.getElementById('lblHint');
-                    if (hint) hint.style.display = 'block';
+        devicesArray.forEach(d => {
+            d.element.classList.remove('selected-for-connect', 'connecting-target');
+        });
+        const fromDev = devicesArray.find(d => d.id === id);
+        if (fromDev) fromDev.element.classList.add('selected-for-connect');
+
+        devicesArray.forEach(d => {
+            if (d.id !== id) d.element.classList.add('connecting-target');
+        });
+
+        document.getElementById('modeDisplay').className = 'mode-badge mode-connecting';
+        document.getElementById('modeDisplay').innerText = `🔌 Connecting from ${fromDev?.name}...`;
+        document.getElementById('modeHint').innerText = 'Click another device to connect, or click same device to cancel';
+
+        devicesArray.forEach(d => {
+            const btn = d.element.querySelector('.connect-device-btn');
+            if (btn) {
+                btn.classList.toggle('active', d.id === id);
+                btn.innerText = d.id === id ? '✕ Cancel' : '🔗 Connect';
+            }
+        });
+
+        appendOutput(`> Select target device to connect to ${fromDev?.name} [${fromDev?.ip}]`);
+    }
+
+    function completeConnect(toId) {
+        if (!connectingFrom || connectingFrom === toId) return;
+
+        const fromDev = devicesArray.find(d => d.id === connectingFrom);
+        const toDev = devicesArray.find(d => d.id === toId);
+        if (!fromDev || !toDev) return;
+
+        const cableType = document.querySelector('input[name="cable"]:checked')?.value || 'straight';
+        drawWire(fromDev, toDev, cableType);
+        appendOutput(`> Connected: ${fromDev.name} [${fromDev.ip}] ↔ ${toDev.name} [${toDev.ip}] via ${cableType}`);
+
+        cancelConnect();
+    }
+
+    function cancelConnect() {
+        connectingFrom = null;
+        devicesArray.forEach(d => {
+            d.element.classList.remove('selected-for-connect', 'connecting-target');
+            const btn = d.element.querySelector('.connect-device-btn');
+            if (btn) { btn.classList.remove('active'); btn.innerText = '🔗 Connect'; }
+        });
+        document.getElementById('modeDisplay').className = 'mode-badge mode-normal';
+        document.getElementById('modeDisplay').innerText = '🖱️ Drag & Drop';
+        document.getElementById('modeHint').innerText = 'Click "Connect" on a device to start linking';
+    }
+
+    function drawWire(fromDev, toDev, cableType) {
+        const svg = document.getElementById('wireSvg');
+        const color = CABLE_COLORS[cableType] || '#4f46e5';
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('stroke-linecap', 'round');
+        line.style.filter = `drop-shadow(0 0 4px ${color})`;
+        svg.appendChild(line);
+
+        const wireId = `wire_${Date.now()}`;
+        const wireObj = { id: wireId, element: line, dev1: fromDev, dev2: toDev, color, cableType };
+        linesArray.push(wireObj);
+        actionHistory.push({ type: 'cable', id: wireId });
+
+        updateLine(wireObj);
+        updateConnectionsList();
+        document.getElementById('connCount').innerText = linesArray.length;
+    }
+
+    function updateLine(wireObj) {
+        const d1 = wireObj.dev1.element;
+        const d2 = wireObj.dev2.element;
+        const canvas = document.getElementById('canvas');
+        const cRect = canvas.getBoundingClientRect();
+
+        const r1 = d1.getBoundingClientRect();
+        const r2 = d2.getBoundingClientRect();
+
+        const x1 = r1.left + r1.width / 2 - cRect.left;
+        const y1 = r1.top + r1.height / 2 - cRect.top;
+        const x2 = r2.left + r2.width / 2 - cRect.left;
+        const y2 = r2.top + r2.height / 2 - cRect.top;
+
+        wireObj.element.setAttribute('x1', x1);
+        wireObj.element.setAttribute('y1', y1);
+        wireObj.element.setAttribute('x2', x2);
+        wireObj.element.setAttribute('y2', y2);
+    }
+
+    function updateAllLines() {
+        linesArray.forEach(updateLine);
+    }
+
+    function makeDraggable(elm) {
+        let sx, sy, ox, oy;
+        elm.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('device-ip')) return;
+            e.preventDefault();
+            sx = e.clientX; sy = e.clientY;
+            ox = elm.offsetLeft; oy = elm.offsetTop;
+            const move = (em) => {
+                elm.style.left = (ox + em.clientX - sx) + 'px';
+                elm.style.top = (oy + em.clientY - sy) + 'px';
+                updateAllLines();
+            };
+            const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+        });
+    }
+
+    function openIPModal(devId) {
+        editingDeviceId = devId;
+        const dev = devicesArray.find(d => d.id === devId);
+        if (!dev) return;
+        document.getElementById('ipInput').value = dev.ip;
+        document.getElementById('subnetInput').value = dev.element.dataset.subnet || '255.255.255.0';
+        document.getElementById('ipModal').classList.add('show');
+    }
+
+    function saveIP() {
+        const dev = devicesArray.find(d => d.id === editingDeviceId);
+        if (!dev) return;
+        const newIP = document.getElementById('ipInput').value.trim();
+        const subnet = document.getElementById('subnetInput').value.trim();
+        dev.ip = newIP;
+        dev.element.dataset.ip = newIP;
+        dev.element.dataset.subnet = subnet;
+        dev.element.querySelector('.device-ip').innerText = `📍 ${newIP}`;
+        updateConnectionsList();
+        appendOutput(`> IP updated: ${dev.name} → ${newIP} / ${subnet}`);
+        closeIPModal();
+    }
+
+    function closeIPModal() {
+        document.getElementById('ipModal').classList.remove('show');
+        editingDeviceId = null;
+    }
+
+    function removeDevice(id) {
+        const dev = devicesArray.find(d => d.id === id);
+        if (!dev) return;
+
+        linesArray = linesArray.filter(l => {
+            if (l.dev1.id === id || l.dev2.id === id) { l.element.remove(); return false; }
+            return true;
+        });
+
+        dev.element.remove();
+        devicesArray = devicesArray.filter(d => d.id !== id);
+        actionHistory = actionHistory.filter(a => a.id !== id);
+
+        if (devicesArray.length === 0) document.getElementById('lblHint').style.display = 'block';
+        updateConnectionsList();
+        document.getElementById('connCount').innerText = linesArray.length;
+        appendOutput(`> Device removed: ${dev.name}`);
+        if (connectingFrom === id) cancelConnect();
+    }
+
+    function updateConnectionsList() {
+        const list = document.getElementById('connectionsList');
+        if (linesArray.length === 0) {
+            list.innerHTML = '<div style="color:#64748b; font-size:11px; text-align:center; padding:20px 0;">No connections yet</div>';
+            return;
+        }
+        list.innerHTML = linesArray.map(w => `
+            <div class="connection-card">
+                <div>
+                    <span class="cable-dot" style="background:${w.color};box-shadow:0 0 4px ${w.color}"></span>
+                    <span style="color:#e2e8f0">${w.dev1.name}</span>
+                    <span style="color:#64748b"> ↔ </span>
+                    <span style="color:#e2e8f0">${w.dev2.name}</span>
+                    <div style="font-size:9px;color:#64748b;margin-top:1px;">${w.cableType} | ${w.dev1.ip} ↔ ${w.dev2.ip}</div>
+                </div>
+                <button class="del-wire-btn" onclick="removeWire('${w.id}')">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function removeWire(wireId) {
+        const wire = linesArray.find(w => w.id === wireId);
+        if (!wire) return;
+        wire.element.remove();
+        linesArray = linesArray.filter(w => w.id !== wireId);
+        updateConnectionsList();
+        document.getElementById('connCount').innerText = linesArray.length;
+        appendOutput(`> Wire removed: ${wire.dev1.name} ↔ ${wire.dev2.name}`);
+    }
+
+    function undoLastAction() {
+        if (actionHistory.length === 0) { appendOutput('> Nothing to undo.'); return; }
+        const last = actionHistory.pop();
+        if (last.type === 'device') removeDevice(last.id);
+        else if (last.type === 'cable') removeWire(last.id);
+    }
+
+    function clearCanvas() {
+        [...devicesArray].forEach(d => d.element.remove());
+        linesArray.forEach(l => l.element.remove());
+        devicesArray = []; linesArray = []; actionHistory = [];
+        document.getElementById('lblHint').style.display = 'block';
+        document.getElementById('connCount').innerText = '0';
+        updateConnectionsList();
+        cancelConnect();
+        appendOutput('> Canvas cleared.');
+    }
+
+    function appendOutput(text) {
+        const out = document.getElementById('terminalOutput');
+        out.innerHTML += `<br>${text}`;
+        out.scrollTop = out.scrollHeight;
+    }
+
+    function checkEnter(e) {
+        if (e.key === 'Enter') executeCommand();
+    }
+
+    function executeCommand() {
+        const input = document.getElementById('commandInput');
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        appendOutput(`> ${cmd}`);
+
+        if (cmd === 'help') {
+            appendOutput('Available commands: show devices, ping [ip], clear');
+        } else if (cmd === 'show devices') {
+            if (devicesArray.length === 0) appendOutput('No devices on canvas.');
+            devicesArray.forEach(d => appendOutput(`- ${d.name} : ${d.ip}`));
+        } else if (cmd.startsWith('ping ')) {
+            const targetIp = cmd.split(' ')[1];
+            const found = devicesArray.some(d => d.ip === targetIp);
+            if (found) {
+                appendOutput(`Reply from ${targetIp}: bytes=32 time=4ms TTL=64`);
+                appendOutput(`Ping statistics for ${targetIp}: Packets: Sent = 1, Received = 1, Lost = 0 (0% loss)`);
+            } else {
+                appendOutput(`Request timed out for destination ${targetIp}.`);
+            }
+        } else if (cmd === 'clear') {
+            document.getElementById('terminalOutput').innerHTML = 'Virtual Hub OS v6.0 — Ready.';
+        } else {
+            appendOutput(`Command not recognized: ${cmd}. Type 'help' for options.`);
+        }
+        input.value = '';
+    }
+
+    // دالة الفحص الهندسي المحدثة (Troubleshooting Logic)
+    async function analyzeTopology() {
+        if (devicesArray.length === 0) { appendOutput('> Add devices first to analyze.'); return; }
+
+        const btn = document.getElementById('aiBtn');
+        const output = document.getElementById('aiOutput');
+        btn.disabled = true;
+        btn.innerText = '🔍 Checking Engineering Rules...';
+        output.style.display = 'block';
+        output.innerText = 'Analyzing network rules, cables, and subnets...';
+
+        setTimeout(() => {
+            let errors = [];
+            let warnings = [];
+
+            // 1. فحص قواعد الكيبلات (Cable Mismatch Rules)
+            linesArray.forEach(w => {
+                const type1 = w.dev1.type;
+                const type2 = w.dev2.type;
+                const isIdentical = (type1 === type2) || (['PC', 'Server'].includes(type1) && ['PC', 'Server'].includes(type2));
+
+                if (isIdentical && w.cableType === 'straight') {
+                    errors.push(`❌ Cable Error: Between ${w.dev1.name} and ${w.dev2.name}, a <b>Crossover</b> cable is required instead of Straight-Through.`);
+                } else if (!isIdentical && w.cableType === 'crossover' && type1 !== 'Router' && type2 !== 'Router') {
+                    warnings.push(`⚠️ Warning: Using Crossover between different device types (${w.dev1.name} & ${w.dev2.name}) is unconventional; Straight-Through is preferred.`);
                 }
-                appendOutput(`> Removed device: ${devName}`);
-            }
-        }
+            });
 
-        function makeElementDraggable(elm) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            elm.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
-                // منع التحريك إذا تم الضغط على زر الحذف
-                if (e.target.classList.contains('delete-btn-ind')) return;
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
-
-            function elementDrag(e) {
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                elm.style.top = (elm.offsetTop - pos2) + "px";
-                elm.style.left = (elm.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
-        }
-
-        function connectSelectedCable() {
-            if (devicesArray.length < 2) {
-                appendOutput(`<span style="color: #f87171;">> Error: Add at least 2 devices on canvas first!</span>`);
-                return;
-            }
-
-            const selectedCable = document.querySelector('input[name="cable"]:checked').value;
-            const dev1 = devicesArray[devicesArray.length - 2].element;
-            const dev2 = devicesArray[devicesArray.length - 1].element;
-            
-            const canvas = document.getElementById('canvas');
-            const line = document.createElement('div');
-            line.className = 'connection-line';
-            
-            function updateLine() {
-                const x1 = dev1.offsetLeft + dev1.offsetWidth / 2;
-                const y1 = dev1.offsetTop + dev1.offsetHeight / 2;
-                const x2 = dev2.offsetLeft + dev2.offsetWidth / 2;
-                const y2 = dev2.offsetTop + dev2.offsetHeight / 2;
-
-                const length = Math.hypot(x2 - x1, y2 - y1);
-                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-
-                line.style.width = `${length}px`;
-                line.style.left = `${x1}px`;
-                line.style.top = `${y1}px`;
-                line.style.transform = `rotate(${angle}deg)`;
-            }
-
-            updateLine();
-            canvas.appendChild(line);
-            
-            const lineObj = { element: line };
-            linesArray.push(lineObj);
-            actionHistory.push({ type: 'cable', ref: lineObj });
-
-            appendOutput(`> Successfully linked last two devices using [${selectedCable}] cable!`);
-        }
-
-        function undoLastAction() {
-            if (actionHistory.length > 0) {
-                const lastAction = actionHistory.pop();
-                if (lastAction.type === 'device') {
-                    lastAction.ref.element.remove();
-                    devicesArray = devicesArray.filter(d => d !== lastAction.ref);
-                    if (devicesArray.length === 0) {
-                        const hint = document.getElementById('lblHint');
-                        if (hint) hint.style.display = 'block';
+            // 2. فحص عناوين الـ IP والتجزئة (Subnet Check)
+            if (devicesArray.length >= 2 && linesArray.length > 0) {
+                const firstSubnet = devicesArray[0].ip.split('.').slice(0, 3).join('.');
+                devicesArray.forEach(d => {
+                    const sub = d.ip.split('.').slice(0, 3).join('.');
+                    if (sub !== firstSubnet) {
+                        const hasRouter = devicesArray.some(dev => dev.type === 'Router');
+                        if (!hasRouter) {
+                            errors.push(`❌ Routing Error: Device ${d.name} (${d.ip}) is in a different subnet, but no <b>Router</b> is deployed to route traffic!`);
+                        }
                     }
-                    appendOutput(`> Undone: Removed last added device.`);
-                } else if (lastAction.type === 'cable') {
-                    lastAction.ref.element.remove();
-                    linesArray = linesArray.filter(l => l !== lastAction.ref);
-                    appendOutput(`> Undone: Removed last connected cable.`);
+                });
+            }
+
+            // بناء التقرير النهائي للطالب
+            let reportHTML = `<strong>🔍 Network Troubleshooting Report:</strong><br>`;
+            reportHTML += `- Total Devices: ${devicesArray.length} | Connections: ${linesArray.length}<br><hr style="border-color:#334155;margin:4px 0;">`;
+
+            if (errors.length === 0 && warnings.length === 0) {
+                reportHTML += `<span style="color:var(--accent-green)">✔ Success: All network cabling and IP configurations follow proper engineering standards! (Score: 100/100)</span>`;
+                appendOutput('> AI: Network topology passed all engineering validation checks.');
+            } else {
+                if (errors.length > 0) {
+                    reportHTML += `<span style="color:var(--accent-red)"><b>Errors Found (${errors.length}):</b></span><br>` + errors.join('<br>') + `<br>`;
                 }
-            } else {
-                appendOutput(`> Workspace is empty, nothing to undo.`);
-            }
-        }
-
-        function clearCanvas() {
-            devicesArray.forEach(d => {
-                if (d.element && d.element.parentNode) d.element.remove();
-            });
-            linesArray.forEach(l => {
-                if (l.element && l.element.parentNode) l.element.remove();
-            });
-            
-            devicesArray = [];
-            linesArray = [];
-            actionHistory = [];
-
-            const hint = document.getElementById('lblHint');
-            if (hint) hint.style.display = 'block';
-            appendOutput(`> Workspace cleared completely.`);
-        }
-
-        function appendOutput(text) {
-            const out = document.getElementById('terminalOutput');
-            out.innerHTML += `<br>${text}`;
-            out.scrollTop = out.scrollHeight;
-        }
-
-        function checkEnter(e) {
-            if (e.key === 'Enter') executeCommand();
-        }
-
-        function executeCommand() {
-            const input = document.getElementById('commandInput');
-            const cmd = input.value.trim();
-            if (!cmd) return;
-
-            appendOutput(`> ${cmd}`);
-            const parts = cmd.split(' ');
-            const action = parts[0].toLowerCase();
-
-            if (action === 'help') {
-                appendOutput(`Available commands:<br> - ping [IP] : Test connectivity<br> - show ip interface brief : View ports status`);
-            } else if (action === 'ping') {
-                const target = parts[1] || '192.168.1.1';
-                appendOutput(`Pinging ${target} with 32 bytes of data:`);
-                setTimeout(() => appendOutput(`Reply from ${target}: bytes=32 time=2ms TTL=64`), 300);
-                setTimeout(() => appendOutput(`Reply from ${target}: bytes=32 time=1ms TTL=64`), 600);
-                setTimeout(() => appendOutput(`<span style="color: #34d399;">Ping statistics: Sent = 2, Received = 2, Lost = 0 (0% loss)</span>`), 900);
-            } else if (cmd === 'show ip interface brief') {
-                appendOutput(`Interface\tIP-Address\tStatus\nFa0/0\t\t192.168.1.1\tup/up`);
-            } else {
-                appendOutput(`<span style="color: #f87171;">Command not recognized. Type 'help'.</span>`);
+                if (warnings.length > 0) {
+                    reportHTML += `<span style="color:var(--accent-yellow)"><b>Warnings (${warnings.length}):</b></span><br>` + warnings.join('<br>') + `<br>`;
+                }
+                reportHTML += `<br><i>💡 Tip: Fix the highlighted cabling or IP issues to pass the lab test.</i>`;
+                appendOutput(`> AI: Found ${errors.length} errors and ${warnings.length} warnings in the topology.`);
             }
 
-            input.value = '';
-        }
-    </script>
-
+            output.innerHTML = reportHTML;
+            btn.disabled = false;
+            btn.innerText = 'Analyze Network Errors';
+        }, 1000);
+    }
+</script>
 </body>
 </html>
