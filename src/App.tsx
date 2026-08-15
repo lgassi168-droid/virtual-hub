@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { Auth } from './components/Auth'
+import AIAgent from './components/AIAgent'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import EmbeddedLab from './pages/EmbeddedLab'
@@ -12,10 +13,14 @@ import EditProfile from './pages/EditProfile'
 import Settings from './pages/Settings'
 import AssemblyLab from './pages/AssemblyLab'
 import CircuitLab from './pages/CircuitLab'
+import './App.css'
 
 function App() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,6 +34,22 @@ function App() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        !hamburgerRef.current?.contains(e.target as Node) &&
+        !menuRef.current?.contains(e.target as Node)
+      ) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [menuOpen])
 
   if (loading) {
     return (
@@ -49,41 +70,36 @@ function App() {
 
   return (
     <Router>
-      <div style={{
-        background: 'rgba(255,255,255,0.05)',
-        borderBottom: '1px solid rgba(255,105,180,0.3)',
-        padding: '12px 24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backdropFilter: 'blur(10px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <Link to="/" style={{ color: '#ff69b4', fontWeight: 'bold', fontSize: '20px', textDecoration: 'none' }}>
-          ⚡ Virtual Hub
-        </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link to="/settings" style={{ color: '#aaa', fontSize: '14px', textDecoration: 'none' }}>
-            ⚙️ Settings
-          </Link>
-          <span style={{ color: '#aaa', fontSize: '14px' }}>
-            👤 {session.user.email}
-          </span>
+      <header className="topbar">
+        <div className="topbar-left">
           <button
-            onClick={() => supabase.auth.signOut()}
-            style={{
-              background: 'linear-gradient(90deg, #ff69b4, #e91e8c)',
-              border: 'none', borderRadius: '20px',
-              padding: '8px 20px', color: 'white',
-              cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
-            }}
+            ref={hamburgerRef}
+            className={`hamburger${menuOpen ? ' open' : ''}`}
+            aria-label="Menu"
+            onClick={() => setMenuOpen((o) => !o)}
           >
+            <span></span><span></span><span></span>
+          </button>
+          <Link to="/" className="logo display">
+            <span className="bolt">⚡</span>
+            <span className="brand">Virtual Hub</span>
+          </Link>
+        </div>
+        <div className="topbar-right">
+          <div className="avatar">{session.user.email[0]}</div>
+          <span className="user-email">{session.user.email}</span>
+          <button className="btn-signout" onClick={() => supabase.auth.signOut()}>
             Sign Out
           </button>
         </div>
-      </div>
+      </header>
+
+      <nav ref={menuRef} className={`menu-panel${menuOpen ? ' open' : ''}`}>
+        <Link to="/settings" onClick={() => setMenuOpen(false)}>⚙️ Settings</Link>
+        <Link to="/dashboard" onClick={() => setMenuOpen(false)}>📊 Dashboard</Link>
+        <Link to="/" onClick={() => setMenuOpen(false)}>🧪 All Labs</Link>
+        <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false) }}>❓ Help &amp; Support</a>
+      </nav>
 
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -97,6 +113,8 @@ function App() {
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
+
+      <AIAgent />
     </Router>
   )
 }
