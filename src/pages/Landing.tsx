@@ -1,134 +1,96 @@
 import { useNavigate } from 'react-router-dom'
+import './Landing.css'
+
+const LABS = [
+  {
+    num: '01',
+    title: 'Engineering & IoT Lab',
+    desc: 'Simulate Arduino, ESP32, and electronics circuits safely with real-time AI feedback.',
+    icon: '⚡',
+    path: '/lab/iot',
+    featured: true,
+  },
+  {
+    num: '02',
+    title: 'Network & Cyber Lab',
+    desc: 'Build router and switch topologies and practice cyber defense scenarios.',
+    icon: '🌐',
+    path: '/lab/network',
+  },
+  {
+    num: '03',
+    title: 'Robotics & Automation Lab',
+    desc: 'Simulate robotic arms and path planning with kinematic visualization.',
+    icon: '🤖',
+    path: '/lab/robotics',
+  },
+  {
+    num: '04',
+    title: 'Assembly Lab',
+    desc: 'Write and simulate 8086 Assembly code with real-time CPU register visualization.',
+    icon: '💻',
+    path: '/lab/assembly',
+  },
+  {
+    num: '05',
+    title: 'Circuit Lab',
+    desc: 'Build and simulate electrical circuits with drag & drop components and real-time calculations.',
+    icon: '🔌',
+    path: '/lab/circuit',
+  },
+]
 
 export default function Landing() {
   const navigate = useNavigate()
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0a0015 0%, #1a0030 50%, #0a0015 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h1 style={{
-          fontSize: '64px',
-          fontWeight: 'bold',
-          background: 'linear-gradient(90deg, #ff69b4, #9b59b6)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '16px'
-        }}>
-          Virtual Hub
-        </h1>
-        <p style={{ fontSize: '20px', color: '#cc99ff', marginBottom: '8px' }}>
-          A Multi-Disciplinary Virtual Engineering Lab Platform
+    <>
+    <main className="page">
+      <section className="mission">
+        <p className="eyebrow">FOR STUDENTS, BY STUDENTS</p>
+        <h1 className="headline display">Virtual Hub</h1>
+        <p>
+          We know the fear of breaking equipment and falling behind. Virtual Hub gives you a calm,
+          judgment-free space to practice, get it wrong, and actually learn — with real-time AI
+          guidance, whenever you're ready.
         </p>
-        <p style={{ fontSize: '16px', color: '#888', maxWidth: '600px', lineHeight: '1.6' }}>
-          Practice engineering concepts safely, anytime, anywhere —
-          with real-time AI guidance and no risk of damaging expensive hardware.
-        </p>
-      </div>
+        <button className="btn-cta" onClick={() => navigate('/dashboard')}>
+          View My Dashboard →
+        </button>
+      </section>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '24px',
-        maxWidth: '1100px',
-        width: '100%',
-        marginBottom: '48px'
-      }}>
-        {[
-          {
-            title: 'Engineering & IoT Lab',
-            desc: 'Simulate Arduino, ESP32, and electronics circuits safely with real-time AI feedback.',
-            icon: '⚡',
-            path: '/lab/iot',
-            color: '#ff69b4'
-          },
-          {
-            title: 'Network & Cyber Lab',
-            desc: 'Build router and switch topologies and practice cyber defense scenarios.',
-            icon: '🌐',
-            path: '/lab/network',
-            color: '#9b59b6'
-          },
-          {
-            title: 'Robotics & Automation Lab',
-            desc: 'Simulate robotic arms and path planning with kinematic visualization.',
-            icon: '🤖',
-            path: '/lab/robotics',
-            color: '#e91e8c'
-          },
-          {
-            title: 'Assembly Lab',
-            desc: 'Write and simulate 8086 Assembly code with real-time CPU register visualization.',
-            icon: '💻',
-            path: '/lab/assembly',
-            color: '#4f46e5'
-          },
-          {
-            title: 'Circuit Lab',
-            desc: 'Build and simulate electrical circuits with drag & drop components and real-time calculations.',
-            icon: '🔌',
-            path: '/lab/circuit',
-            color: '#0284c7'
-          }
-        ].map((lab) => (
-          <div
+      <section className="labs">
+        <h2 className="display">Labs &amp; Experiments</h2>
+        <p className="sub">Pick up where you left off</p>
+
+        {LABS.map((lab) => (
+          <button
             key={lab.path}
+            className={`lab-row${lab.featured ? ' featured' : ''}`}
             onClick={() => navigate(lab.path)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: `1px solid ${lab.color}44`,
-              borderRadius: '16px',
-              padding: '32px 24px',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              textAlign: 'center'
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.background = `${lab.color}22`
-              ;(e.currentTarget as HTMLDivElement).style.borderColor = lab.color
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.05)'
-              ;(e.currentTarget as HTMLDivElement).style.borderColor = `${lab.color}44`
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-            }}
           >
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>{lab.icon}</div>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: lab.color, marginBottom: '12px' }}>
-              {lab.title}
-            </h3>
-            <p style={{ fontSize: '14px', color: '#aaa', lineHeight: '1.6' }}>{lab.desc}</p>
-          </div>
+            <span className="lab-num">{lab.num}</span>
+            <span className="lab-icon">{lab.icon}</span>
+            <span>
+              <p className="lab-title">{lab.title}</p>
+              <p className="lab-desc">{lab.desc}</p>
+              {lab.featured && <span className="lab-continue">CONTINUE →</span>}
+            </span>
+            <span className="lab-arrow">›</span>
+          </button>
         ))}
-      </div>
 
-      <button
-        onClick={() => navigate('/dashboard')}
-        style={{
-          background: 'linear-gradient(90deg, #ff69b4, #9b59b6)',
-          border: 'none',
-          borderRadius: '12px',
-          padding: '16px 48px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          color: 'white',
-          cursor: 'pointer'
-        }}
-      >
-        View My Dashboard →
-      </button>
+        <button className="view-all" onClick={() => navigate('/dashboard')}>
+          <span className="plus-circle">+</span>
+          <span>
+            <p className="vt">View All Labs</p>
+            <p className="vs">See the full catalog</p>
+          </span>
+        </button>
+      </section>
+    </main>
 
-      <p style={{ marginTop: '48px', color: '#555', fontSize: '14px' }}>
-        ctrl+innovate • JSYP Hackathon 2026
-      </p>
-    </div>
+    <footer className="footer-note">ctrl+innovate • JSYP Hackathon 2026</footer>
+    </>
   )
 }

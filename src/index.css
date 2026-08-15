@@ -1,3 +1,19 @@
+:root {
+  --bg-1: #1c0e30;
+  --bg-2: #160a24;
+  --bg-3: #100819;
+  --pink: #ff4fa3;
+  --pink-2: #ff5fa8;
+  --purple: #8b5cf6;
+  --purple-2: #a855f7;
+  --text-primary: #f2e9fb;
+  --text-secondary: #c9baE3;
+  --text-muted: #9c89bb;
+  --text-faint: #7c6994;
+  --divider: rgba(255, 255, 255, 0.08);
+  --panel: rgba(255, 255, 255, 0.035);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,9 +22,17 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #0a0015;
-  color: #ffffff;
+  background:
+    radial-gradient(480px 480px at 12% 12%, rgba(255, 79, 163, 0.18), transparent 70%),
+    radial-gradient(520px 520px at 92% 90%, rgba(139, 92, 246, 0.2), transparent 70%),
+    linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
   min-height: 100vh;
+}
+
+.display {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
 }
 
 ::-webkit-scrollbar {
