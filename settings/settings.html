@@ -29,43 +29,42 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 <div class="sidebar">
 
 <h2>Virtual Hub</h2>
-
 <ul>
 
-<li>
-<i class="fa-solid fa-house"></i>
-Dashboard
-</li>
+    <li onclick="location.href='../dashboard/dashboard2.html'">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+    </li>
 
-<li>
-<i class="fa-solid fa-microchip"></i>
-IoT Lab
-</li>
+    <li onclick="location.href='../simulation/embedded2.html'">
+        <i class="fa-solid fa-laptop-code"></i>
+        Embedded Lab
+    </li>
 
-<li>
-<i class="fa-solid fa-laptop-code"></i>
-Embedded Lab
-</li>
+    <li onclick="location.href='../simulation/assembly.html'">
+        <i class="fa-solid fa-code"></i>
+        Assembly
+    </li>
 
-<li>
-<i class="fa-solid fa-code"></i>
-Assembly
-</li>
+    <li onclick="location.href='../simulation/circuits.html'">
+        <i class="fa-solid fa-bolt"></i>
+        Circuit
+    </li>
 
-<li>
-<i class="fa-solid fa-bolt"></i>
-Circuit
-</li>
+    <li onclick="location.href='../simulation/network.html'">
+        <i class="fa-solid fa-microchip"></i>
+        Network Lab
+    </li>
 
-<li>
-<i class="fa-solid fa-user"></i>
-Profile
-</li>
+    <li onclick="location.href='../profile/profile.html'">
+        <i class="fa-solid fa-user"></i>
+        Profile
+    </li>
 
-<li class="active">
-<i class="fa-solid fa-gear"></i>
-Settings
-</li>
+    <li class="active" onclick="location.href='settings.html'">
+        <i class="fa-solid fa-gear"></i>
+        Settings
+    </li>
 
 </ul>
 
@@ -145,25 +144,9 @@ hidden>
         <i class="fa-solid fa-language"></i>
         <span>Language</span>
     </div>
-    
-  <span class="Language-text">English</span>
 
-</div>
-
-<div class="setting-item">
-
-    <div class="left">
-        <i class="fa-solid fa-moon"></i>
-        <span>Dark Mode</span>
-    </div>
-
-    <label class="switch">
-        <input type="checkbox" checked>
-        <span class="slider"></span>
-    </label>
-
-</div>
-
+    <span class="Language-text">English</span>
+  </div>
 
 
 <div class="setting-item Logout" onclick="openPasswordModal()">
@@ -180,7 +163,6 @@ hidden>
 
 </div>
 
-</a>
 <div class="setting-item logout">
 
     <div class="left">
@@ -235,6 +217,7 @@ hidden>
 function closeEditProfileModal(){
     document.getElementById('editProfileModal').style.display = 'none';
 } 
+
 </script>
 
 </body>
