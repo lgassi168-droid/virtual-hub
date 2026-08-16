@@ -47,8 +47,7 @@ Answering rules:
 const initialMessages: Message[] = [
   {
     role: 'assistant',
-    content:
-      'أنا مادلي مساعدك الذكي خلال المختبر.\n\nI\'m Madly, your AI assistant during the lab.',
+    content: 'أنا مادلي مساعدك الذكي خلال المختبر.\n\nI\'m Madly, your AI assistant during the lab.',
   },
 ]
 
@@ -94,8 +93,7 @@ export default function MadlyAssistant() {
         ...prev,
         {
           role: 'assistant',
-          content:
-            'AI is not configured yet. Add your Groq key to the VITE_GROQ_API_KEY environment variable before using Madly.',
+          content: 'AI is not configured yet. Add your Groq key to the VITE_GROQ_API_KEY environment variable before using Madly.',
         },
       ])
       return
@@ -134,7 +132,7 @@ export default function MadlyAssistant() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer `,
+          Authorization: `Bearer ${GROQ_API_KEY}`,
         },
         body: JSON.stringify({
           model: selectedImage ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
