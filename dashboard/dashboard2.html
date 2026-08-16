@@ -1,1 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Virtual Hub Dashboard</title>
+
+<link rel="stylesheet" href="dashboard2.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<!-- ================= Sidebar ================= -->
+
+<aside class="sidebar">
+
+<h2>Virtual Hub</h2>
+
+
+<ul>
+
+    <li class="active" role="link" tabindex="0" onclick="location.href='dashboard2.html'">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+    </li>
+    <li role="link" tabindex="0" onclick="location.href='../simulation/embedded2.html'">
+        <i class="fa-solid fa-laptop-code"></i>
+        Embedded Lab
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/assembly.html'">
+        <i class="fa-solid fa-code"></i>
+        Assembly
+    </li>
+
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/circuits.html'">
+        <i class="fa-solid fa-bolt"></i>
+        Circuit
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../simulation/network.html'">
+        <i class="fa-solid fa-microchip"></i>
+        Network Lab
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../profile/profile.html'">
+        <i class="fa-solid fa-user"></i>
+        Profile
+    </li>
+
+    <li role="link" tabindex="0" onclick="location.href='../settings/settings.html'">
+        <i class="fa-solid fa-gear"></i>
+        Settings
+    </li>
+
+</ul>
+
+
+</aside>
+
+<!-- ================= Main ================= -->
+
+<main class="main">
+
+<!-- Top Bar -->
+
+<div class="topbar">
+    <div class="search-wrapper">
+        <label class="sr-only" for="searchInput">Search labs</label>
+        <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+        <input type="search" id="searchInput" placeholder="Search Lab..." oninput="filterLabs()" autocomplete="off" aria-label="Search labs">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+</div>
+
+
+<!-- Cards -->
+
+<section class="cards" aria-label="Dashboard statistics">
+
+<div class="card">
+    <i class="fa-solid fa-flask"></i>
+    <h3>Completed Labs</h3>
+    <h1 id="completedCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-clock"></i>
+    <h3>Simulation Hours</h3>
+    <h1 id="hoursCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-robot"></i>
+    <h3>AI Reviews</h3>
+    <h1 id="reviewsCount">0</h1>
+</div>
+
+<div class="card">
+    <i class="fa-solid fa-list-check"></i>
+    <h3>Pending Labs</h3>
+    <h1 id="pendingCount">4</h1>
+</div>
+
+</section>
+<!-- ================= Hero ================= -->
+
+<div class="hero">
+
+    <div class="welcome">
+
+        <h1 id="welcomeTitle">Welcome to Virtual Hub</h1>
+        <p id="welcomeMessage">
+            Practice your engineering labs using AI-powered simulations.
+        </p>
+        <div class="welcome-meta" id="welcomeMeta"></div>
+
+    </div>
+
+    <div class="hero-image">
+
+        <img src="../images/robot-dashboard.png" alt="Robot">
+
+    </div>
+
+</div>
+
+
+<!-- ================= Bottom ================= -->
+
+<div class="bottom">
+
+    <!-- Projects -->
+    <div class="projects">
+
+        <div class="projects-header">
+            <h2>My Projects</h2>
+            <button class="add-project-btn" onclick="openAddProjectModal()">+ Add Project</button>
+        </div>
+
+        <div id="myProjectsList">
+            <p class="empty-note">No projects yet — add one or pick a suggestion below.</p>
+        </div>
+
+        <h3 class="suggestions-title">Suggested Projects</h3>
+
+        <div id="suggestionsList"></div>
+
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity">
+        <h2>Recent Lab Activity</h2>
+        <div id="activityList">
+            <p>No activity yet — complete a lab to see it here.</p>
+        </div>
+    </div>
+
+</div>
+
+<div id="addProjectModal" class="modal-overlay">
+    <div class="modal-box">
+        <button class="modal-close" type="button" onclick="closeAddProjectModal()" aria-label="Close add project dialog">&times;</button>
+        <iframe src="../add-project/add-project.html" class="modal-iframe"></iframe>
+    </div>
+</div>
+
+</main>
+</div>
+
+<script src="dashboard2.js"></script>
+
+</body>
+
+</html>
