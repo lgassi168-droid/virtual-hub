@@ -85,7 +85,6 @@
             <div style="font-size: 11px; color: var(--text-secondary);">مختبر الدوائر الكهربائيه التفاعلي</div>
         </div>
         <div class="top-controls">
-            <button class="action-btn" id="saveProjectBtn" onclick="saveAsProject()">📁 <span id="lblSaveProject">إضافة كمشروع</span></button>
             <button class="action-btn" id="undoBtn" onclick="undoAction()" disabled>↩️ Undo</button>
             <button class="action-btn" onclick="clearWorkspace()" style="color: var(--accent-red);">🗑️ مسح الكل</button>
         </div>
@@ -419,83 +418,6 @@
             clearReadings();
         }
 
-        /* ================= حفظ/استرجاع تقدم المشروع + إضافة كمشروع ================= */
-        // getProjectIdFromURL / saveProjectProgress / loadProjectProgress / saveCurrentAsProject
-        // معرّفات بملف lab-status.js المشترك. بدون زر "Mark Lab as Complete" —
-        // الإكمال بيصير بس من حالة المشروع بالداشبورد (My Projects)
-
-        let currentProjectId = null;
-        let autosaveStarted = false;
-
-        function persistProjectProgress() {
-            if (!currentProjectId) return;
-            saveProjectProgress(currentProjectId, {
-                canvasHtml: document.getElementById('simCanvas').innerHTML,
-                nodes: JSON.parse(JSON.stringify(nodesList)),
-                wires: JSON.parse(JSON.stringify(wiresList)),
-                compCounter: compCounter
-            });
-        }
-
-        function startAutosave() {
-            if (autosaveStarted) return;
-            autosaveStarted = true;
-            setInterval(persistProjectProgress, 4000);
-            window.addEventListener('beforeunload', persistProjectProgress);
-        }
-
-        function updateSaveProjectBtn() {
-            const lbl = document.getElementById('lblSaveProject');
-            if (!lbl) return;
-            lbl.innerText = currentProjectId ? 'حفظ التقدم' : 'إضافة كمشروع';
-        }
-
-        function restoreProjectIfAny() {
-            currentProjectId = getProjectIdFromURL();
-            if (!currentProjectId) { updateSaveProjectBtn(); return; }
-
-            let saved = loadProjectProgress(currentProjectId);
-            if (saved && saved.canvasHtml) {
-                document.getElementById('simCanvas').innerHTML = saved.canvasHtml + '<svg id="wireSvg"></svg>';
-                nodesList = saved.nodes || [];
-                wiresList = saved.wires || [];
-                compCounter = saved.compCounter || 0;
-                rebindEvents();
-                updatePortDropdowns();
-                redrawWires();
-            }
-
-            startAutosave();
-            updateSaveProjectBtn();
-        }
-
-        // زر "إضافة كمشروع": لو اللاب مفتوح أصلاً من مشروع (من الداشبورد) بيحفظ فوراً،
-        // ولو مفتوح عادي (بدون مشروع) بيسألك عن اسم وبيضيفه لـ My Projects من هون مباشرة
-        function saveAsProject() {
-            if (currentProjectId) {
-                persistProjectProgress();
-                alert('تم حفظ تقدمك بنجاح ✅');
-                return;
-            }
-
-            const name = prompt('اسم المشروع الجديد؟');
-            if (!name || !name.trim()) return;
-
-            const newId = saveCurrentAsProject(name, 'circuit');
-            if (!newId) return;
-
-            currentProjectId = newId;
-            persistProjectProgress();
-            history.replaceState(null, '', location.pathname + '?project=' + newId);
-            startAutosave();
-            updateSaveProjectBtn();
-
-            alert('تمت إضافة المشروع! رح تلاقيه بقسم My Projects بالداشبورد، وشغلك رح يضل يتحفظ فيه تلقائياً.');
-        }
-
-        document.addEventListener('DOMContentLoaded', restoreProjectIfAny);
     </script>
-
-    <script src="../dashboard/lab-status.js"></script>
 </body>
 </html>
