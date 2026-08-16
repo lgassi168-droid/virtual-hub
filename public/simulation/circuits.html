@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-color: #09090b;
+            --panel-bg: #121217;
+            --border-color: #27272a;
+            --text-main: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent-green: #22c55e;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
+        
+        .header { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .sys-title { font-size: 14px; font-weight: 700; color: #38bdf8; font-family: 'Fira Code', monospace; }
+        
+        .top-controls { display: flex; gap: 8px; align-items: center; }
+        .action-btn { background: #27272a; color: #fff; border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; font-family: 'Fira Code', monospace; display: flex; align-items: center; gap: 4px; }
+        .action-btn:hover { background: var(--primary); }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .main-layout { display: grid; grid-template-columns: 260px 1fr 320px; gap: 8px; flex: 1; height: calc(100vh - 150px); }
+
+        .panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
+        .panel-title { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+        .toolbox-items { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+        .tool-item { background: #18181b; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-size: 11px; font-family: 'Fira Code', monospace; cursor: grab; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .tool-item:hover { border-color: var(--primary); background: #1e1e24; }
+
+        .canvas-container { flex: 1; background: #050507; border: 1px solid var(--border-color); border-radius: 6px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        
+        #simCanvas { flex: 1; background-image: radial-gradient(#27272a 1.2px, transparent 1.2px); background-size: 24px 24px; position: relative; cursor: crosshair; }
+        #wireSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+        .circuit-node { position: absolute; background: #18181b; border: 2px solid var(--primary); border-radius: 8px; padding: 8px 12px; width: 160px; text-align: center; font-family: 'Fira Code', monospace; font-size: 11px; cursor: move; user-select: none; z-index: 2; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .circuit-node.power { border-color: var(--accent-orange); }
+        .circuit-node.resistor { border-color: var(--accent-green); }
+
+        .node-port { width: 16px; height: 16px; background: #27272a; border: 2px solid #fff; border-radius: 50%; position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #fff; }
+        .node-port.left { left: -8px; border-color: var(--accent-red); background: #450a0a; }
+        .node-port.right { right: -8px; border-color: var(--accent-green); background: #064e3b; }
+        .node-port:hover { transform: translateY(-50%) scale(1.3); }
+
+        .port-label { position: absolute; font-size: 9px; font-weight: bold; top: -16px; }
+        .port-label.left-lbl { left: 4px; color: var(--accent-red); }
+        .port-label.right-lbl { right: 4px; color: var(--accent-green); }
+
+        /* زر الحذف الفردي */
+        .node-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .delete-btn-ind { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); border-radius: 3px; font-size: 9px; padding: 1px 5px; cursor: pointer; transition: 0.2s; font-family: 'Cairo', sans-serif; }
+        .delete-btn-ind:hover { background: var(--accent-red); color: #fff; }
+
+        /* لوحة الأسلاك المباشرة */
+        .wire-builder { background: #18181b; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; margin-top: 6px; font-size: 11px; }
+        .wire-builder select { width: 100%; background: #000; color: #fff; border: 1px solid var(--border-color); padding: 4px; border-radius: 4px; margin-bottom: 5px; font-family: 'Fira Code', monospace; font-size: 10px; }
+
+        .calc-section { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+        .calc-card { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 8px; font-family: 'Fira Code', monospace; display: flex; justify-content: space-between; align-items: center; }
+        .calc-label { font-size: 10px; color: var(--text-secondary); }
+        .calc-val { font-size: 12px; font-weight: 700; color: #38bdf8; }
+
+        .btn { background: var(--primary); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; text-align: center; width: 100%; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-power { background: var(--accent-red); margin-top: 6px; }
+        .btn-power.active { background: var(--accent-green); }
+    </style>
+</head>
+<body dir="rtl">
+
+    <div class="header">
+        <div>
+            <div class="sys-title">سيركت لاب / Circuit Lab</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">مختبر الدوائر الكهربائيه التفاعلي</div>
+        </div>
+        <div class="top-controls">
+            <button class="action-btn" id="saveProjectBtn" onclick="saveAsProject()">📁 <span id="lblSaveProject">إضافة كمشروع</span></button>
+            <button class="action-btn" id="undoBtn" onclick="undoAction()" disabled>↩️ Undo</button>
+            <button class="action-btn" onclick="clearWorkspace()" style="color: var(--accent-red);">🗑️ مسح الكل</button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- 1. لوحة المكونات -->
+        <div class="panel">
+            <div class="panel-title">المكونات (Components)</div>
+            <div class="toolbox-items">
+                <div class="tool-item" draggable="true" ondragstart="drag(event, 'power')">
+                    <span>⚡ DC Power Supply</span> <b>[اسحب]</b>
+                </div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event, 'resistor1')">
+                    <span>🔌 Resistor R1</span> <b>[اسحب]</b>
+                </div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event, 'resistor2')">
+                    <span>🔌 Resistor R2</span> <b>[اسحب]</b>
+                </div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event, 'multimeter')">
+                    <span>📊 Multimeter</span> <b>[اسحب]</b>
+                </div>
+                <div class="tool-item" draggable="true" ondragstart="drag(event, 'ground')">
+                    <span>⏾ Ground (GND)</span> <b>[اسحب]</b>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-power" id="powerBtn" onclick="togglePower()">🔌 تشغيل النظام (OFF)</button>
+            </div>
+        </div>
+
+        <!-- 2. مساحة العمل Canvas -->
+        <div class="panel" style="padding: 0;">
+            <div class="canvas-container">
+                <div id="simCanvas" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <svg id="wireSvg"></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. قائمة التوصيل والحسابات -->
+        <div class="panel">
+            <div class="panel-title">قائمة التوصيل السريع والتحليل</div>
+            
+            <div class="wire-builder">
+                <div style="font-weight: 700; margin-bottom: 4px; color: #38bdf8;">ربط سلك بين قطبين:</div>
+                <label style="font-size:9px; color:var(--text-secondary);">من القطب:</label>
+                <select id="selFrom"></select>
+                <label style="font-size:9px; color:var(--text-secondary);">إلى القطب:</label>
+                <select id="selTo"></select>
+                <button class="btn" style="margin-top: 4px;" onclick="addWireFromList()">🔗 توصيل السلك</button>
+            </div>
+
+            <div class="calc-section" style="margin-top: 8px;">
+                <div class="calc-card"><span class="calc-label">جهد المصدر (V)</span><span class="calc-val" id="valV">12.00 V</span></div>
+                <div class="calc-card"><span class="calc-label">التيار الكلي (I)</span><span class="calc-val" id="valI">0.00 A</span></div>
+                <div class="calc-card"><span class="calc-label">المقاومة الإجمالية (Req)</span><span class="calc-val" id="valReq">0.00 Ω</span></div>
+                <div class="calc-card"><span class="calc-label">القدرة الفعالة (P)</span><span class="calc-val" id="valP">0.00 W</span></div>
+                <div class="calc-card"><span class="calc-label">حالة الدائرة</span><span class="calc-val" id="valStatus" style="color:var(--accent-red);">مفتوحة</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPowered = false;
+        let compCounter = 0;
+        let nodesList = [];
+        let wiresList = [];
+        let historyStack = [];
+
+        function saveState() {
+            let state = {
+                canvasHtml: document.getElementById('simCanvas').innerHTML,
+                nodes: JSON.parse(JSON.stringify(nodesList)),
+                wires: JSON.parse(JSON.stringify(wiresList)),
+                isPowered: isPowered
+            };
+            historyStack.push(state);
+            document.getElementById('undoBtn').disabled = false;
+        }
+
+        function undoAction() {
+            if (historyStack.length === 0) return;
+            let prev = historyStack.pop();
+            document.getElementById('simCanvas').innerHTML = prev.canvasHtml + '<svg id="wireSvg"></svg>';
+            nodesList = prev.nodes;
+            wiresList = prev.wires;
+            isPowered = prev.isPowered;
+            if (historyStack.length === 0) document.getElementById('undoBtn').disabled = true;
+            rebindEvents();
+            updatePortDropdowns();
+            redrawWires();
+            calculateCircuit();
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev, type) { ev.dataTransfer.setData("text", type); }
+
+        function drop(ev) {
+            ev.preventDefault();
+            saveState();
+            let type = ev.dataTransfer.getData("text");
+            let canvas = document.getElementById('simCanvas');
+            let rect = canvas.getBoundingClientRect();
+            let x = ev.clientX - rect.left - 75;
+            let y = ev.clientY - rect.top - 40;
+
+            compCounter++;
+            let id = `comp_${compCounter}`;
+            let title = type === 'power' ? 'DC Source' : type.includes('resistor') ? type.toUpperCase() : type;
+            let defaultVal = type === 'power' ? 12 : 100;
+
+            let el = document.createElement('div');
+            el.id = id;
+            el.className = `circuit-node ${type.includes('power') ? 'power' : type.includes('resistor') ? 'resistor' : type}`;
+            el.style.left = `${Math.max(10, x)}px`;
+            el.style.top = `${Math.max(10, y)}px`;
+            
+            el.innerHTML = `
+                <span class="port-label left-lbl">(-) سالب</span>
+                <div class="node-port left" data-node="${id}" data-side="left" onclick="selectPortQuick('${id}', 'left')"></div>
+                <div class="node-header-row">
+                    <strong>${title}</strong>
+                    <button class="delete-btn-ind" onclick="removeSpecificComponent('${id}')">❌ حذف</button>
+                </div>
+                <input type="number" value="${defaultVal}" style="width: 85px; background:#000; color:#fff; border:1px solid #444; font-size:11px; text-align:center; margin-top:2px;" id="val_${id}" oninput="calculateCircuit()">
+                <div class="node-port right" data-node="${id}" data-side="right" onclick="selectPortQuick('${id}', 'right')"></div>
+                <span class="port-label right-lbl">(+) موجب</span>
+            `;
+
+            makeDraggable(el);
+            canvas.appendChild(el);
+            nodesList.push({ id, title, type, x, y });
+            updatePortDropdowns();
+            calculateCircuit();
+        }
+
+        function removeSpecificComponent(id) {
+            saveState();
+            let el = document.getElementById(id);
+            if (el) el.remove();
+
+            // إزالة المكون من القائمة
+            nodesList = nodesList.filter(n => n.id !== id);
+
+            // إزالة أي أسلاك مرتبطة بهذا المكون
+            wiresList = wiresList.filter(w => w.from.nodeId !== id && w.to.nodeId !== id);
+
+            updatePortDropdowns();
+            redrawWires();
+            calculateCircuit();
+        }
+
+        function makeDraggable(elm) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elm.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                if (e.target.tagName === 'INPUT' || e.target.classList.contains('node-port') || e.target.classList.contains('delete-btn-ind')) return;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elm.style.top = (elm.offsetTop - pos2) + "px";
+                elm.style.left = (elm.offsetLeft - pos1) + "px";
+                redrawWires();
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function updatePortDropdowns() {
+            let selFrom = document.getElementById('selFrom');
+            let selTo = document.getElementById('selTo');
+            selFrom.innerHTML = '';
+            selTo.innerHTML = '';
+
+            nodesList.forEach(n => {
+                let leftOpt1 = document.createElement('option');
+                leftOpt1.value = `${n.id}:left`;
+                leftOpt1.text = `${n.id} (${n.title}) - قطب سالب (-)`;
+                selFrom.appendChild(leftOpt1);
+
+                let leftOpt2 = leftOpt1.cloneNode(true);
+                selTo.appendChild(leftOpt2);
+
+                let rightOpt1 = document.createElement('option');
+                rightOpt1.value = `${n.id}:right`;
+                rightOpt1.text = `${n.id} (${n.title}) - قطب موجب (+)`;
+                selFrom.appendChild(rightOpt1);
+
+                let rightOpt2 = rightOpt1.cloneNode(true);
+                selTo.appendChild(rightOpt2);
+            });
+        }
+
+        function selectPortQuick(nodeId, side) {
+            let val = `${nodeId}:${side}`;
+            let selFrom = document.getElementById('selFrom');
+            if (!selFrom.value) {
+                selFrom.value = val;
+            } else {
+                document.getElementById('selTo').value = val;
+            }
+        }
+
+        function addWireFromList() {
+            let fromVal = document.getElementById('selFrom').value;
+            let toVal = document.getElementById('selTo').value;
+            if (!fromVal || !toVal || fromVal === toVal) return;
+
+            saveState();
+            let [fNode, fSide] = fromVal.split(':');
+            let [tNode, tSide] = toVal.split(':');
+
+            wiresList.push({
+                from: { nodeId: fNode, side: fSide },
+                to: { nodeId: tNode, side: tSide }
+            });
+
+            redrawWires();
+            calculateCircuit();
+        }
+
+        function redrawWires() {
+            let svg = document.getElementById('wireSvg');
+            svg.innerHTML = '';
+            wiresList.forEach(w => {
+                let fEl = document.getElementById(w.from.nodeId);
+                let tEl = document.getElementById(w.to.nodeId);
+                if (fEl && tEl) {
+                    let fRect = fEl.getBoundingClientRect();
+                    let tRect = tEl.getBoundingClientRect();
+                    let cRect = document.getElementById('simCanvas').getBoundingClientRect();
+
+                    let x1 = (w.from.side === 'right' ? fRect.right : fRect.left) - cRect.left;
+                    let y1 = fRect.top + fRect.height / 2 - cRect.top;
+                    let x2 = (w.to.side === 'right' ? tRect.right : tRect.left) - cRect.left;
+                    let y2 = tRect.top + tRect.height / 2 - cRect.top;
+
+                    let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', y1);
+                    line.setAttribute('x2', x2);
+                    line.setAttribute('y2', y2);
+                    line.setAttribute('stroke', '#38bdf8');
+                    line.setAttribute('stroke-width', '3');
+                    svg.appendChild(line);
+                }
+            });
+        }
+
+        function rebindEvents() {
+            nodesList.forEach(n => {
+                let el = document.getElementById(n.id);
+                if (el) makeDraggable(el);
+            });
+        }
+
+        function togglePower() {
+            saveState();
+            isPowered = !isPowered;
+            let btn = document.getElementById('powerBtn');
+            if (isPowered) {
+                btn.classList.add('active');
+                btn.innerHTML = `🔌 إيقاف النظام (ON)`;
+                calculateCircuit();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `🔌 تشغيل النظام (OFF)`;
+                clearReadings();
+            }
+        }
+
+        function clearReadings() {
+            document.getElementById('valI').innerText = "0.00 A";
+            document.getElementById('valReq').innerText = "0.00 Ω";
+            document.getElementById('valP').innerText = "0.00 W";
+            document.getElementById('valStatus').innerText = "مفتوحة";
+            document.getElementById('valStatus').style.color = "var(--accent-red)";
+        }
+
+        function calculateCircuit() {
+            if (!isPowered) return;
+
+            let vSource = 12;
+            let totalR = 0;
+
+            nodesList.forEach(n => {
+                let inp = document.getElementById(`val_${n.id}`);
+                if (inp) {
+                    let val = parseFloat(inp.value) || 0;
+                    if (n.type === 'power') vSource = val;
+                    if (n.type.includes('resistor')) totalR += val;
+                }
+            });
+
+            if (totalR === 0) totalR = 10;
+            let current = vSource / totalR;
+            let power = vSource * current;
+
+            document.getElementById('valV').innerText = `${vSource.toFixed(2)} V`;
+            document.getElementById('valReq').innerText = `${totalR.toFixed(2)} Ω`;
+            document.getElementById('valI').innerText = current < 1 ? `${(current*1000).toFixed(2)} mA` : `${current.toFixed(2)} A`;
+            document.getElementById('valP').innerText = `${power.toFixed(2)} W`;
+
+            let status = document.getElementById('valStatus');
+            status.innerText = wiresList.length > 0 ? "مغلقة ومستقرة" : "تنبيه: لا توجد أسلاك موصولة";
+            status.style.color = wiresList.length > 0 ? "var(--accent-green)" : "var(--accent-orange)";
+        }
+
+        function clearWorkspace() {
+            saveState();
+            document.getElementById('simCanvas').innerHTML = '<svg id="wireSvg"></svg>';
+            compCounter = 0;
+            nodesList = [];
+            wiresList = [];
+            updatePortDropdowns();
+            clearReadings();
+        }
+
+        /* ================= حفظ/استرجاع تقدم المشروع + إضافة كمشروع ================= */
+        // getProjectIdFromURL / saveProjectProgress / loadProjectProgress / saveCurrentAsProject
+        // معرّفات بملف lab-status.js المشترك. بدون زر "Mark Lab as Complete" —
+        // الإكمال بيصير بس من حالة المشروع بالداشبورد (My Projects)
+
+        let currentProjectId = null;
+        let autosaveStarted = false;
+
+        function persistProjectProgress() {
+            if (!currentProjectId) return;
+            saveProjectProgress(currentProjectId, {
+                canvasHtml: document.getElementById('simCanvas').innerHTML,
+                nodes: JSON.parse(JSON.stringify(nodesList)),
+                wires: JSON.parse(JSON.stringify(wiresList)),
+                compCounter: compCounter
+            });
+        }
+
+        function startAutosave() {
+            if (autosaveStarted) return;
+            autosaveStarted = true;
+            setInterval(persistProjectProgress, 4000);
+            window.addEventListener('beforeunload', persistProjectProgress);
+        }
+
+        function updateSaveProjectBtn() {
+            const lbl = document.getElementById('lblSaveProject');
+            if (!lbl) return;
+            lbl.innerText = currentProjectId ? 'حفظ التقدم' : 'إضافة كمشروع';
+        }
+
+        function restoreProjectIfAny() {
+            currentProjectId = getProjectIdFromURL();
+            if (!currentProjectId) { updateSaveProjectBtn(); return; }
+
+            let saved = loadProjectProgress(currentProjectId);
+            if (saved && saved.canvasHtml) {
+                document.getElementById('simCanvas').innerHTML = saved.canvasHtml + '<svg id="wireSvg"></svg>';
+                nodesList = saved.nodes || [];
+                wiresList = saved.wires || [];
+                compCounter = saved.compCounter || 0;
+                rebindEvents();
+                updatePortDropdowns();
+                redrawWires();
+            }
+
+            startAutosave();
+            updateSaveProjectBtn();
+        }
+
+        // زر "إضافة كمشروع": لو اللاب مفتوح أصلاً من مشروع (من الداشبورد) بيحفظ فوراً،
+        // ولو مفتوح عادي (بدون مشروع) بيسألك عن اسم وبيضيفه لـ My Projects من هون مباشرة
+        function saveAsProject() {
+            if (currentProjectId) {
+                persistProjectProgress();
+                alert('تم حفظ تقدمك بنجاح ✅');
+                return;
+            }
+
+            const name = prompt('اسم المشروع الجديد؟');
+            if (!name || !name.trim()) return;
+
+            const newId = saveCurrentAsProject(name, 'circuit');
+            if (!newId) return;
+
+            currentProjectId = newId;
+            persistProjectProgress();
+            history.replaceState(null, '', location.pathname + '?project=' + newId);
+            startAutosave();
+            updateSaveProjectBtn();
+
+            alert('تمت إضافة المشروع! رح تلاقيه بقسم My Projects بالداشبورد، وشغلك رح يضل يتحفظ فيه تلقائياً.');
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreProjectIfAny);
+    </script>
+
+    <script src="../dashboard/lab-status.js"></script>
+</body>
+</html>

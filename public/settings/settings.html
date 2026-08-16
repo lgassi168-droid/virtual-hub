@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Settings | Virtual Hub</title>
+
+<link rel="stylesheet" href="settings.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<h2>Virtual Hub</h2>
+<ul>
+
+    <li onclick="location.href='../dashboard/dashboard2.html'">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+    </li>
+
+    <li onclick="location.href='../simulation/embedded2.html'">
+        <i class="fa-solid fa-laptop-code"></i>
+        Embedded Lab
+    </li>
+
+    <li onclick="location.href='../simulation/assembly.html'">
+        <i class="fa-solid fa-code"></i>
+        Assembly
+    </li>
+
+    <li onclick="location.href='../simulation/circuits.html'">
+        <i class="fa-solid fa-bolt"></i>
+        Circuit
+    </li>
+
+    <li onclick="location.href='../simulation/network.html'">
+        <i class="fa-solid fa-microchip"></i>
+        Network Lab
+    </li>
+
+    <li onclick="location.href='../profile/profile.html'">
+        <i class="fa-solid fa-user"></i>
+        Profile
+    </li>
+
+    <li class="active" onclick="location.href='settings.html'">
+        <i class="fa-solid fa-gear"></i>
+        Settings
+    </li>
+
+</ul>
+
+</div>
+
+<!-- Main -->
+
+<div class="main">
+
+<h1 class="title">
+
+
+Settings
+
+</h1>
+
+<div class="settings-box">
+
+<!-- Profile -->
+
+<div class="profile-section">
+
+<img src="images/default-profile.png"
+id="profilePreview"
+class="profile-img">
+
+<div class="profile-info">
+
+<h2>Your Profile</h2>
+
+<label for="profileUpload"
+class="change-photo">
+
+Change Photo
+
+</label>
+
+<input
+type="file"
+id="profileUpload"
+accept="image/*"
+hidden>
+
+</div>
+
+</div>
+<!-- Settings Options -->
+
+<div class="setting-item" onclick="openEditProfileModal()">
+
+    <div class="left">
+        <i class="fa-solid fa-user-pen"></i>
+        <span>Edit Profile</span>
+    </div>
+
+    <i class="fa-solid fa-chevron-right"></i>
+
+</div>
+
+<div class="setting-item">
+
+    <div class="left">
+        <i class="fa-solid fa-bell"></i>
+        <span>Notifications</span>
+    </div>
+
+    <label class="switch">
+        <input type="checkbox" checked>
+        <span class="slider"></span>
+    </label>
+
+</div>
+
+<div class="setting-item">
+
+    <div class="left">
+        <i class="fa-solid fa-language"></i>
+        <span>Language</span>
+    </div>
+
+    <span class="Language-text">English</span>
+  </div>
+
+
+<div class="setting-item Logout" onclick="openPasswordModal()">
+
+    <div class="left">
+
+        <i class="fa-solid fa-lock"></i>
+
+        <span>Change Password</span>
+
+    </div>
+
+    <i class="fa-solid fa-chevron-right"></i>
+
+</div>
+
+<div class="setting-item logout">
+
+    <div class="left">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Log Out</span>
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>                             
+
+<div id="passwordModal" class="modal-overlay">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closePasswordModal()">&times;</span>
+        <iframe src="../change-password/change-password.html" class="modal-iframe"></iframe>
+    </div>
+</div>
+
+<div id="editProfileModal" class="modal-overlay">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeEditProfileModal()">&times;</span>
+        <iframe src="../edit-profile/edit-profile.html" class="modal-iframe"></iframe>
+    </div>
+</div>
+
+<script>                               
+    const upload = document.getElementById("profileUpload");
+    const preview = document.getElementById("profilePreview");
+
+    upload.addEventListener("change", function(){
+        const file = this.files[0];
+        if(file){
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+
+    function openPasswordModal(){
+        document.getElementById('passwordModal').style.display = 'flex';
+    }
+    function closePasswordModal(){
+        document.getElementById('passwordModal').style.display = 'none';
+    }
+    function openEditProfileModal(){
+    document.getElementById('editProfileModal').style.display = 'flex';
+}
+function closeEditProfileModal(){
+    document.getElementById('editProfileModal').style.display = 'none';
+} 
+
+</script>
+
+</body>
+</html>

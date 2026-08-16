@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Project</title>
+<link rel="stylesheet" href="add-project.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-plus"></i>
+            Add New Project
+        </h1>
+
+        <p class="subtitle">Add a project you're working on.</p>
+
+        <form id="addProjectForm" novalidate>
+            <label for="newProjectName">Project Name</label>
+            <input type="text" id="newProjectName" name="newProjectName" placeholder="e.g. Smart Doorbell" required>
+
+            <label for="newProjectLab">Lab</label>
+            <select id="newProjectLab" name="newProjectLab">
+                <option value="embedded">Embedded Lab</option>
+                <option value="assembly">Assembly</option>
+                <option value="circuit">Circuit</option>
+                <option value="network">Network Lab</option>
+            </select>
+
+            <div id="formMessage" class="inline-message" aria-live="polite"></div>
+
+            <button type="submit" id="addProjectButton">Add Project</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('addProjectForm');
+    const nameInput = document.getElementById('newProjectName');
+    const labSelect = document.getElementById('newProjectLab');
+    const messageBox = document.getElementById('formMessage');
+    const submitButton = document.getElementById('addProjectButton');
+
+    function setMessage(text, type = 'error') {
+        messageBox.textContent = text;
+        messageBox.className = `inline-message ${type}`;
+    }
+
+    function addProject() {
+        const name = nameInput.value.trim();
+        const lab = labSelect.value;
+
+        if (name === '') {
+            setMessage('Please enter a project name.', 'error');
+            nameInput.focus();
+            return;
+        }
+
+        const saved = JSON.parse(localStorage.getItem('myProjects') || '[]');
+        const projects = Array.isArray(saved) ? saved : [];
+        const duplicate = projects.some(project =>
+            project && project.name && project.lab &&
+            project.name.trim().toLowerCase() === name.toLowerCase() &&
+            project.lab === lab
+        );
+
+        if (duplicate) {
+            setMessage('This project is already in your list.', 'error');
+            nameInput.focus();
+            return;
+        }
+
+        const newProject = {
+            id: Date.now().toString() + Math.random().toString(16).slice(2),
+            name,
+            lab,
+            status: 'status-progress'
+        };
+
+        projects.unshift(newProject);
+        localStorage.setItem('myProjects', JSON.stringify(projects));
+
+        setMessage('Project added successfully.', 'success');
+        submitButton.disabled = true;
+        nameInput.value = '';
+
+        window.parent?.postMessage({
+            source: 'virtual-hub-add-project',
+            type: 'project-added',
+            project: newProject
+        }, '*');
+
+        setTimeout(() => {
+            if (window.parent && window.parent !== window) {
+                try {
+                    window.parent.location.reload();
+                } catch (error) {
+                    // ignore parent reload issues in cross-origin contexts
+                }
+            }
+        }, 250);
+    }
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        addProject();
+    });
+</script>
+
+</body>
+</html>
