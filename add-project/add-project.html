@@ -20,39 +20,97 @@
 
         <p class="subtitle">Add a project you're working on.</p>
 
-        <label>Project Name</label>
-        <input type="text" id="newProjectName" placeholder="e.g. Smart Doorbell">
+        <form id="addProjectForm" novalidate>
+            <label for="newProjectName">Project Name</label>
+            <input type="text" id="newProjectName" name="newProjectName" placeholder="e.g. Smart Doorbell" required>
 
-        <label>Lab</label>
-        <select id="newProjectLab">
-            <option value="embedded">Embedded Lab</option>
-            <option value="assembly">Assembly</option>
-            <option value="circuit">Circuit</option>
-            <option value="network">Network Lab</option>
-        </select>
+            <label for="newProjectLab">Lab</label>
+            <select id="newProjectLab" name="newProjectLab">
+                <option value="embedded">Embedded Lab</option>
+                <option value="assembly">Assembly</option>
+                <option value="circuit">Circuit</option>
+                <option value="network">Network Lab</option>
+            </select>
 
-        <button type="button" onclick="addProject()">Add Project</button>
+            <div id="formMessage" class="inline-message" aria-live="polite"></div>
+
+            <button type="submit" id="addProjectButton">Add Project</button>
+        </form>
 
     </div>
 </div>
 
 <script>
-    function addProject(){
-        const name = document.getElementById('newProjectName').value.trim();
-        const lab = document.getElementById('newProjectLab').value;
+    const form = document.getElementById('addProjectForm');
+    const nameInput = document.getElementById('newProjectName');
+    const labSelect = document.getElementById('newProjectLab');
+    const messageBox = document.getElementById('formMessage');
+    const submitButton = document.getElementById('addProjectButton');
 
-        if(name === ''){
-            alert('Please enter a project name.');
+    function setMessage(text, type = 'error') {
+        messageBox.textContent = text;
+        messageBox.className = `inline-message ${type}`;
+    }
+
+    function addProject() {
+        const name = nameInput.value.trim();
+        const lab = labSelect.value;
+
+        if (name === '') {
+            setMessage('Please enter a project name.', 'error');
+            nameInput.focus();
             return;
         }
 
-        const myProjects = JSON.parse(localStorage.getItem('myProjects')) || [];
-        myProjects.unshift({ name, lab, status: "status-progress" });
-        localStorage.setItem('myProjects', JSON.stringify(myProjects));
+        const saved = JSON.parse(localStorage.getItem('myProjects') || '[]');
+        const projects = Array.isArray(saved) ? saved : [];
+        const duplicate = projects.some(project =>
+            project && project.name && project.lab &&
+            project.name.trim().toLowerCase() === name.toLowerCase() &&
+            project.lab === lab
+        );
 
-        document.getElementById('newProjectName').value = '';
-        alert('Project added!');
+        if (duplicate) {
+            setMessage('This project is already in your list.', 'error');
+            nameInput.focus();
+            return;
+        }
+
+        const newProject = {
+            id: Date.now().toString() + Math.random().toString(16).slice(2),
+            name,
+            lab,
+            status: 'status-progress'
+        };
+
+        projects.unshift(newProject);
+        localStorage.setItem('myProjects', JSON.stringify(projects));
+
+        setMessage('Project added successfully.', 'success');
+        submitButton.disabled = true;
+        nameInput.value = '';
+
+        window.parent?.postMessage({
+            source: 'virtual-hub-add-project',
+            type: 'project-added',
+            project: newProject
+        }, '*');
+
+        setTimeout(() => {
+            if (window.parent && window.parent !== window) {
+                try {
+                    window.parent.location.reload();
+                } catch (error) {
+                    // ignore parent reload issues in cross-origin contexts
+                }
+            }
+        }, 250);
     }
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        addProject();
+    });
 </script>
 
 </body>
