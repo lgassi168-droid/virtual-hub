@@ -10,7 +10,7 @@ body{
     color:#fff;
 }
 
-.app-shell{
+.dashboard{
     display:flex;
     min-height:100vh;
 }
@@ -221,7 +221,7 @@ input:checked + .slider::before{
 
 @media(max-width:900px){
 
-.app-shell{
+.dashboard{
     flex-direction:column;
 }
 

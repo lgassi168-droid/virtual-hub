@@ -18,10 +18,11 @@ export default function Settings() {
   }
 
   const sidebarItems = [
-    { icon: 'fa-house', label: 'Home', path: '/' },
+    { icon: 'fa-house', label: 'Dashboard', path: '/' },
     { icon: 'fa-microchip', label: 'IoT Lab', path: '/lab/iot' },
     { icon: 'fa-network-wired', label: 'Network Lab', path: '/lab/network' },
     { icon: 'fa-robot', label: 'Robotics Lab', path: '/lab/robotics' },
+    { icon: 'fa-gauge', label: 'My Dashboard', path: '/dashboard' },
     { icon: 'fa-user', label: 'Profile', path: '/settings' },
     { icon: 'fa-gear', label: 'Settings', path: '/settings', active: true },
   ]
