@@ -1,1 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Project</title>
+<link rel="stylesheet" href="add-project.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
 
+<div class="container">
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-plus"></i>
+            Add New Project
+        </h1>
+
+        <p class="subtitle">Add a project you're working on.</p>
+
+        <label>Project Name</label>
+        <input type="text" id="newProjectName" placeholder="e.g. Smart Doorbell">
+
+        <label>Lab</label>
+        <select id="newProjectLab">
+            <option value="embedded">Embedded Lab</option>
+            <option value="assembly">Assembly</option>
+            <option value="circuit">Circuit</option>
+            <option value="network">Network Lab</option>
+        </select>
+
+        <button type="button" onclick="addProject()">Add Project</button>
+
+    </div>
+</div>
+
+<script>
+    function addProject(){
+        const name = document.getElementById('newProjectName').value.trim();
+        const lab = document.getElementById('newProjectLab').value;
+
+        if(name === ''){
+            alert('Please enter a project name.');
+            return;
+        }
+
+        const myProjects = JSON.parse(localStorage.getItem('myProjects')) || [];
+        myProjects.unshift({ name, lab, status: "status-progress" });
+        localStorage.setItem('myProjects', JSON.stringify(myProjects));
+
+        document.getElementById('newProjectName').value = '';
+        alert('Project added!');
+    }
+</script>
+
+</body>
+</html>
