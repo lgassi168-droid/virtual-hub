@@ -235,7 +235,6 @@ export default function Landing() {
       <nav className={`menu-panel ${isMenuOpen ? 'open' : ''}`} id="menuPanel">
         <Link to="/settings" onClick={() => setIsMenuOpen(false)}>⚙️ Settings</Link>
         <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>📊 Dashboard</Link>
-        <Link to="/assistant" onClick={() => setIsMenuOpen(false)}>🤖 Madly AI</Link>
         <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>🧪 All Labs</Link>
       </nav>
 
@@ -249,7 +248,7 @@ export default function Landing() {
             get it wrong, and actually learn — with real-time AI guidance,
             whenever you're ready.
           </p>
-          <button className="btn-cta" onClick={() => navigate('/assistant')}>Launch Madly AI →</button>
+          <button className="btn-cta" onClick={() => navigate('/dashboard')}>View My Dashboard →</button>
         </section>
 
         <section className="labs">
@@ -308,14 +307,6 @@ export default function Landing() {
       </main>
 
       <footer className="footer-note">ctrl+innovate • JSYP Hackathon 2026</footer>
-      <button
-        className="chat-fab"
-        onClick={() => navigate('/assistant')}
-        aria-label="Open Madly AI assistant"
-        title="Madly AI assistant"
-      >
-        🤖
-      </button>
     </div>
   );
 }

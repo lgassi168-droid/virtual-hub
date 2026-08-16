@@ -23,7 +23,6 @@ export default function Settings() {
     { icon: 'fa-network-wired', label: 'Network Lab', path: '/lab/network' },
     { icon: 'fa-robot', label: 'Robotics Lab', path: '/lab/robotics' },
     { icon: 'fa-gauge', label: 'My Dashboard', path: '/dashboard' },
-    { icon: 'fa-robot', label: 'Madly AI', path: '/assistant' },
     { icon: 'fa-user', label: 'Profile', path: '/settings' },
     { icon: 'fa-gear', label: 'Settings', path: '/settings', active: true },
   ]
