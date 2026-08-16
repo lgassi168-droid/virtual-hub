@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { Auth } from './components/Auth'
 import Landing from './pages/Landing'
+import Dashboard from './pages/Dashboard'
 import EmbeddedLab from './pages/EmbeddedLab'
 import NetworkLab from './pages/NetworkLab'
 import RoboticsLab from './pages/RoboticsLab'
@@ -49,16 +50,17 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/lab/iot" element={<EmbeddedLab />} />
-        <Route path="/lab/network" element={<NetworkLab />} />
-        <Route path="/lab/robotics" element={<RoboticsLab />} />
-        <Route path="/lab/assembly" element={<AssemblyLab />} />
-        <Route path="/lab/circuit" element={<CircuitLab />} />
-        <Route path="/change-password" element={<ChangePassword />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
+      <Route path="/" element={<Landing />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/lab/iot" element={<EmbeddedLab />} />
+        <Route path="/lab/network" element={<NetworkLab />} />
+        <Route path="/lab/robotics" element={<RoboticsLab />} />
+        <Route path="/lab/assembly" element={<AssemblyLab />} />
+        <Route path="/lab/circuit" element={<CircuitLab />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </Router>
   )
 }

@@ -234,7 +234,8 @@ export default function Landing() {
       {/* القائمة المنسدلة للهمبرغر مرتبطة بمسارات الـ App */}
       <nav className={`menu-panel ${isMenuOpen ? 'open' : ''}`} id="menuPanel">
         <Link to="/settings" onClick={() => setIsMenuOpen(false)}>⚙️ Settings</Link>
-        <Link to="/lab/iot" onClick={() => setIsMenuOpen(false)}>🧪 Labs</Link>
+        <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>📊 Dashboard</Link>
+        <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>🧪 All Labs</Link>
       </nav>
 
       <main className="page">
@@ -247,7 +248,7 @@ export default function Landing() {
             get it wrong, and actually learn — with real-time AI guidance,
             whenever you're ready.
           </p>
-          <button className="btn-cta" onClick={() => navigate('/lab/iot')}>Explore Labs →</button>
+          <button className="btn-cta" onClick={() => navigate('/dashboard')}>View My Dashboard →</button>
         </section>
 
         <section className="labs">
@@ -295,7 +296,7 @@ export default function Landing() {
             <span className="lab-arrow">›</span>
           </a>
 
-          <a className="view-all" onClick={() => navigate('/lab/iot')}>
+          <a className="view-all" onClick={() => navigate('/dashboard')}>
             <span className="plus-circle">+</span>
             <span>
               <p className="vt">View All Labs</p>
