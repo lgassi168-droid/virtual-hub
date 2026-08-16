@@ -47,12 +47,8 @@ body{
     margin-bottom:25px;
 }
 
-form{
-    display:flex;
-    flex-direction:column;
-}
-
 label{
+    display:block;
     font-size:13px;
     color:#cc99ff;
     margin-bottom:6px;
@@ -60,7 +56,8 @@ label{
 }
 
 input,
-textarea{
+select{
+    width:100%;
     background:#0f0020;
     border:1px solid rgba(255,255,255,.08);
     border-radius:12px;
@@ -69,22 +66,21 @@ textarea{
     font-size:14px;
     outline:none;
     font-family:'Poppins',sans-serif;
-    resize:none;
-    transition:.3s;
+    cursor:pointer;
 }
 
 input:focus,
-textarea:focus{
+select:focus{
     border-color:#ff69b4;
     box-shadow:0 0 12px rgba(255,105,180,.3);
 }
 
-input::placeholder,
-textarea::placeholder{
-    color:#777;
+select option{
+    background:#1a0030;
 }
 
 button{
+    width:100%;
     margin-top:28px;
     padding:14px;
     border:none;
