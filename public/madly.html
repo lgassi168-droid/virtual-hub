@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<!-- saved from url=(0034)file:///D:/DOWNLOAD/madly%204.html -->
+<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Madly — IoT &amp; Assembly Lab Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./Madly — IoT &amp; Assembly Lab Chat_files/css2" rel="stylesheet">
+<style>
+  :root{
+    --pink:#ff69b4;
+    --purple:#9b59b6;
+    --deep-pink:#e91e8c;
+    --light-purple:#cc99ff;
+    --bg-main:#0a0015;
+    --text-primary:#ffffff;
+    --text-secondary:#d6c6ff;
+    --glass-border: rgba(204,153,255,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Poppins', sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(155,89,182,0.18), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(255,105,180,0.14), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(233,30,140,0.12), transparent 50%),
+      var(--bg-main);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+  }
+  .glass{
+    background:rgba(255,255,255,0.035);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--glass-border);
+  }
+  .chat-window{
+    width:100%; max-width:640px; border-radius:22px; overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(155,89,182,0.15);
+  }
+  .chat-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px; border-bottom:1px solid var(--glass-border);
+    background:rgba(255,255,255,0.02);
+  }
+  .chat-title{ display:flex; align-items:center; gap:12px; font-weight:600; font-size:15px; }
+  .chat-title .bot-avatar{
+    width:36px; height:36px; border-radius:11px;
+    background:linear-gradient(135deg, var(--pink), var(--purple));
+    display:flex; align-items:center; justify-content:center; font-size:17px;
+    box-shadow:0 0 16px rgba(255,105,180,0.45);
+  }
+  .status{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); }
+  .pulse-dot{
+    width:7px; height:7px; border-radius:50%; background:#3ddc84;
+    box-shadow:0 0 8px #3ddc84;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.5; transform:scale(0.8);} }
+
+  .chat-body{
+    padding:24px; display:flex; flex-direction:column; gap:16px;
+    min-height:320px; max-height:480px; overflow-y:auto;
+  }
+  .chat-body::-webkit-scrollbar{ width:6px; }
+  .chat-body::-webkit-scrollbar-thumb{ background:rgba(204,153,255,0.3); border-radius:6px; }
+
+  .msg{ display:flex; gap:10px; max-width:85%; }
+  .msg.ai{ align-self:flex-start; }
+  .msg.user{ align-self:flex-end; flex-direction:row-reverse; }
+  .msg-avatar{
+    width:30px; height:30px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+  .msg.ai .msg-avatar{ background:linear-gradient(135deg, var(--pink), var(--purple)); }
+  .msg.user .msg-avatar{ background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); }
+  .bubble{
+    padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .msg.ai .bubble{
+    background:rgba(255,255,255,0.045); border:1px solid var(--glass-border);
+    border-top-left-radius:4px;
+  }
+  .msg.user .bubble{
+    background:linear-gradient(135deg, rgba(255,105,180,0.25), rgba(155,89,182,0.25));
+    border:1px solid rgba(204,153,255,0.25);
+    border-top-right-radius:4px;
+  }
+  .typing-dots{ display:flex; gap:4px; padding:14px 16px; }
+  .typing-dots span{
+    width:6px; height:6px; border-radius:50%; background:var(--light-purple);
+    animation:typing 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2){ animation-delay:0.15s; }
+  .typing-dots span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes typing{ 0%,60%,100%{opacity:0.3; transform:translateY(0);} 30%{opacity:1; transform:translateY(-3px);} }
+
+  .chat-input-area{ padding:18px 20px; border-top:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+  .input-row{
+    display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--glass-border);
+    border-radius:16px; padding:8px 8px 8px 18px;
+    transition:border-color .3s ease, box-shadow .3s ease;
+  }
+  .input-row:focus-within{ border-color:rgba(255,105,180,0.5); box-shadow:0 0 0 3px rgba(255,105,180,0.12); }
+  .input-row input{
+    flex:1; background:transparent; border:none; outline:none;
+    color:#fff; font-family:'Poppins', sans-serif; font-size:14px;
+  }
+  .input-row input::placeholder{ color:rgba(214,198,255,0.45); }
+  .send-btn{
+    width:38px; height:38px; border-radius:11px; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--pink), var(--purple));
+    color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 18px rgba(255,105,180,0.45);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .send-btn:hover{ transform:scale(1.08); box-shadow:0 0 26px rgba(255,105,180,0.65); }
+  .send-btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+
+  .icon-btn{
+    width:34px; height:34px; border-radius:10px; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.06); border:1px solid var(--glass-border);
+    color:var(--text-secondary); font-size:15px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .icon-btn:hover{ background:rgba(255,255,255,0.12); color:#fff; }
+  .icon-btn.active{
+    background:linear-gradient(135deg, var(--pink), var(--purple)); color:#fff;
+    box-shadow:0 0 14px rgba(255,105,180,0.5);
+  }
+  .icon-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .lang-toggle-btn{
+    width:auto; padding:0 10px; font-size:11px; font-weight:700; letter-spacing:.5px;
+  }
+  .img-preview-row{
+    display:none; align-items:center; gap:10px; padding:0 4px 10px 4px;
+  }
+  .img-preview-row.show{ display:flex; }
+  .img-preview-row img{
+    width:52px; height:52px; object-fit:cover; border-radius:10px;
+    border:1px solid var(--glass-border);
+  }
+  .img-preview-remove{
+    background:rgba(255,255,255,0.08); border:1px solid var(--glass-border);
+    color:var(--text-secondary); border-radius:8px; width:24px; height:24px;
+    cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
+  }
+  .img-preview-remove:hover{ color:#fff; background:rgba(255,255,255,0.15); }
+  .msg .bubble img{
+    max-width:220px; border-radius:12px; display:block; margin-top:6px;
+  }
+  .mic-btn.recording{
+    animation:pulse 1.2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="chat-window glass">
+  <div class="chat-header">
+    <div class="chat-title">
+      <div class="bot-avatar">🤖</div>
+      <span>Madly</span>
+    </div>
+    <div class="status"><span class="pulse-dot"></span> Online</div>
+  </div>
+
+  <div class="chat-body" id="chatBody">
+    <div class="msg ai">
+      <div class="msg-avatar">🤖</div>
+      <div class="bubble">أنا مادلي مساعدك الذكي خلال المختبر.
+
+I'm Madly, your AI assistant during the lab.</div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <div class="img-preview-row" id="imgPreviewRow">
+      <img id="imgPreviewThumb" src="file:///D:/DOWNLOAD/madly%204.html" alt="preview">
+      <button class="img-preview-remove" id="imgPreviewRemove" title="إزالة / Remove">✕</button>
+    </div>
+    <div class="input-row">
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <button class="icon-btn" id="attachBtn" title="إرفاق صورة / Attach image">📎</button>
+      <input type="text" id="chatInput" placeholder="اسأل أي شيء / Ask anything...">
+      <button class="icon-btn lang-toggle-btn" id="voiceLangBtn" title="لغة الإدخال الصوتي / Voice input language">AR</button>
+      <button class="icon-btn mic-btn" id="micBtn" title="إدخال صوتي / Voice input">🎤</button>
+      <button class="send-btn" id="sendBtn" title="إرسال / Send">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const attachBtn = document.getElementById('attachBtn');
+  const fileInput = document.getElementById('fileInput');
+  const imgPreviewRow = document.getElementById('imgPreviewRow');
+  const imgPreviewThumb = document.getElementById('imgPreviewThumb');
+  const imgPreviewRemove = document.getElementById('imgPreviewRemove');
+  const micBtn = document.getElementById('micBtn');
+  const voiceLangBtn = document.getElementById('voiceLangBtn');
+  const history = [];
+  const GROQ_API_KEY = "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"; 
+
+  let selectedImageDataUrl = null;
+  let voiceLang = 'ar-JO';
+  let recognizing = false;
+  let recognition = null;
+
+  function detectLanguage(text){
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(text) ? 'ar' : 'en';
+  }
+
+  function addMessage(role, text, imageDataUrl){
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+    const imgHtml = imageDataUrl ? `<img src="${imageDataUrl}" alt="attached image" />` : '';
+    wrap.innerHTML = `
+      <div class="msg-avatar">${role === 'user' ? '🧑' : '🤖'}</div>
+      <div class="bubble">${escapeHtml(text)}${imgHtml}</div>
+    `;
+    chatBody.appendChild(wrap);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function addTyping(){
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ai';
+    wrap.id = 'typingIndicator';
+    wrap.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div class="bubble typing-dots"><span></span><span></span><span></span></div>
+    `;
+    chatBody.appendChild(wrap);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function removeTyping(){
+    const el = document.getElementById('typingIndicator');
+    if(el) el.remove();
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function getSystemPrompt(userLang){
+    const labsListAr = `
+=== مادة Introduction to IoT ===
+
+Section 1 - مقدمة في إنترنت الأشياء (IoT):
+- التعريف: شبكة من الأشياء المتصلة التي تتواصل بدون تدخل بشري (أجهزة ذكية، إلكترونيات، آلات). IoT هو نظام من الأجهزة الحوسبية والميكانيكية والرقمية المترابطة، لكل منها معرّف فريد (UID)، وقادرة على نقل البيانات عبر شبكة دون تدخل بشري.
+- التاريخ: 1982 أول جهاز متصل (آلة كوكاكولا)، 1991 ورقة Mark Weiser عن Ubiquitous Computing، 1993-1997 محاولات من Microsoft وNovell، 1999 بدأ المجال بالانتشار الفعلي.
+- أنواع الشبكات: LAN (شبكة محلية بين الأجهزة)، MAN (بين الخوادم، منطقة جغرافية أكبر)، WAN (شبكة واسعة/تغطي مدن)، PAN (شبكة شخصية تربط أجهزة الشخص نفسه).
+- أكثر تقنيات IoT شيوعًا: أجهزة مراقبة المرضى Patient monitors (64%)، عدادات الطاقة Energy meters (56%)، الأشعة والتصوير X-rays and imaging (33%).
+
+Section 2 - التقنيات المُمكِّنة (Enabling Technologies):
+- Addressability: فكرة Auto-ID center تعتمد على RFID والترميز الإلكتروني للمنتج EPC، بحيث كل جهاز له ID خاص فيه.
+- Application Layer: يتطلب بروتوكولات وإطار عمل لتطبيقات IoT (مثال: ADRC).
+- التقنيات اللاسلكية قصيرة المدى: Bluetooth، LiFi (يستخدم LED كمرسل، تكلفة أقل لكن يحتاج خط رؤية Line of Sight)، NFC، RFID (مسح بدون تلامس)، WiFi (802.11)، ZigBee (استهلاك طاقة منخفض، معدل بيانات منخفض، تكلفة منخفضة)، Z-Wave (للأتمتة والأمان).
+- التقنيات متوسطة المدى: سرعة عالية، throughput أعلى، latency أقل، تغطية جيدة، مثال: 5G (عدد مستخدمين كبير لكل جهاز).
+- التقنيات طويلة المدى: LPWAN (طاقة منخفضة)، VSAT (تقنية أقمار صناعية بأطباق صغيرة للـ narrowband وbroadband)، معادلة SNR = Ps/Pn.
+- التقنيات السلكية: Ethernet (أزواج ملتوية وألياف ضوئية مع Hubs/Switches)، PLC (نقل البيانات عبر الأسلاك الكهربائية، مثال: HomePlug، G.hn).
+
+Section 3 - تطبيقات IoT حسب المجال:
+- تطبيقات استهلاكية: 1) Smart Home (أتمتة التدفئة والإضاءة والتكييف، توفير الطاقة بإطفاء الإضاءة تلقائيًا). 2) Elder Care (رعاية كبار السن وذوي الإعاقة).
+- تطبيقات مؤسساتية: 1) الرعاية الصحية (جمع وتحليل بيانات للبحث والمراقبة). 2) النقل. 3) V2X Communication (اتصال المركبة بكل شيء): V2V (مركبة لمركبة)، V2I (مركبة لبنية تحتية)، V2P (مركبة لمشاة) — وهي الخطوة الأولى نحو القيادة الذاتية.
+- Building & Home Automation: مراقبة والتحكم بالأنظمة الميكانيكية والكهربائية والإلكترونية في المباني (عامة أو خاصة أو صناعية أو سكنية).
+- تطبيقات صناعية: 1) التصنيع Manufacturing. 2) الزراعة Agriculture (جمع بيانات الحرارة والأمطار والرطوبة وسرعة الرياح والآفات والتربة لاتخاذ قرارات مستنيرة وتقليل الهدر — مثال: مراقبة رطوبة التربة عن بُعد وتطبيق برامج تسميد دقيقة).
+- تطبيقات البنية التحتية: 1) إدارة الطاقة (تقليل استهلاك الطاقة وتحسين كفاءة الإنتاج). 2) المراقبة البيئية (جودة المياه، الظروف الجوية والتربة، حركة الحياة البرية). 3) Living Lab (يجمع بين البحث والابتكار).
+- تطبيقات عسكرية: Internet of Battlefield Things (مبادرة من مختبر أبحاث الجيش الأمريكي ARL لتعزيز قدرات الجنود)، Ocean of Things (برنامج لمراقبة وتحليل الأنشطة البيئية والسفن عبر محيط واسع).
+
+الاتجاهات البحثية والمعمارية:
+- مشاكل كثرة المستخدمين: 1) ازدحام الشبكة Network traffic (يسبب تأخير). 2) التعارض Conflict (نفس التردد/الموقع/الوقت، يسبب إعادة إرسال). الحل: التحكم بالوصول المتعدد Multiple Access Control: CDMA (Code)، SDMA (Space)، FDMA (Frequency)، TDMA (Time).
+- الذكاء (Intelligence): يمكن تقديمه على 3 مستويات: 1) أجهزة IoT، 2) عقد Edge/Fog، 3) الحوسبة السحابية Cloud — وتعتمد الحاجة للذكاء وسرعة القرار في كل مستوى على حساسية التطبيق للوقت (مثال: كاميرا مركبة ذاتية القيادة تحتاج كشف عوائق فوري).
+- المعمارية: نظام IoT يتكون من 3 طبقات: Tier 1: الأجهزة (Devices) — حساسات Sensors وفعّالات Actuators. Tier 2: بوابة الحافة (Edge Gateway) — تجميع البيانات ومعالجتها الأولية وربطها بالسحابة (مثل WebSockets، Event Hub) وأحيانًا Edge Analytics/Fog Computing. Tier 3: السحابة (Cloud) — تخزين ومعالجة متقدمة.
+- قابلية التوسع (Scalability): قدرة الشبكة على إضافة/إزالة مستخدمين دون التأثير على الوظيفة الأساسية. تُستخدم بروتوكولات خفيفة مثل MQTT وZeroMQ (ضمن CoAP الخاص بـ IETF)، وFog Computing كبديل لتجنب انفجار تدفق البيانات نحو السحابة.
+- اعتبارات الحجم والمكان: Smart devices، Online (متصلة بنفس الوقت)، Location للحساسات، GPS، إحداثيات نسبية Relative، وGeo Web / Digital Earth (تطبيقات تصبح ممكنة عند تنظيم الأشياء حسب موقعها).
+
+Section 4 - تحديات IoT:
+1) الأمان (Security): أكبر تحدٍ، لأن أي تقنية جديدة تجذب هجمات.
+2) التنظيم (Regulation): التشريعات الحكومية تستغرق وقتًا طويلاً لمواكبة تطور التقنية، وضعف التنظيم يزيد المخاطر الأمنية مع توسع سطح الهجوم.
+3) التوافقية (Compatibility): Bluetooth معيار توافق قديم لأجهزة IoT؛ في أتمتة المنزل تُستخدم ZigBee وZ-Wave؛ استمرار التوافقية يعتمد على المستخدمين أنفسهم.
+4) عرض النطاق الترددي (Bandwidth): العدد الهائل من الاتصالات قد يسبب قيودًا، خصوصًا مع تطبيقات تتطلب bandwidth عالٍ مثل بث الفيديو؛ الحل جزئيًا بالتبديل الذكي بين مشغلي الشبكات المتاحة.
+5) استهلاك الطاقة (Energy Consumption): السعي لزيادة عمر البطارية عبر أوضاع Idle/Sleep (تردد منخفض) وNormal/Full mode (تردد عالٍ).
+6) توقعات العملاء (Customer Expectations): السوق تنافسي والعملاء يتوقعون تجربة سلسة ومتقدمة دائمًا.
+
+مقدمة في البرمجة لـ IoT:
+- أجيال لغات البرمجة: 1) الآلة (Machine)، 2) التجميع (Assembly)، 3) عامة الغرض (مثل C/C++، Java)، 4) متخصصة (مثل Python، SQL، Matlab)، 5) أكثر تخصصًا (مثل Prolog).
+- Microcontroller (حاسوب صغير على شريحة واحدة، لتطبيقات مدمجة مثل نظام ري أوتوماتيكي) مقابل Microprocessor (غرض عام، أجزاء منفصلة، كالحاسوب/الهاتف الذكي).
+- المذبذب Oscillator يولّد الترددات كنبضات، وكل نبضة تمثل تعليمة. الهاردوير يُستخدم لـ: تنفيذ الحسابات (المعالج)، تذكّر البيانات (الذاكرة)، التواصل مع أجهزة أخرى (الشبكات).
+- التفاعل مع العالم الحقيقي عبر Sensors وActuators؛ البرمجيات: 1) المعالج (ينفذ البرنامج) 2) الذاكرة (تخزن البيانات والبرنامج) 3) الحساسات والفعّالات.
+- سيناريوهات تطبيقية: 1) نظام ري ذكي (حساسات متعددة لمراقبة الحرارة والرطوبة، قياسات سابقة تُخزَّن لتحديد وقت ومدة الري، فعّالات لتشغيل/إيقاف الري، شبكة للمراقبة والتحكم عن بعد). 2) نظام مواقف ذكي (حساسات لمراقبة الإشغال، قياسات سابقة للتنبؤ بالطلب، فعّالات لعرض توفر المواقف، شبكة للمراقبة أو إرسال رسائل طارئة).
+- أنواع البيانات: تحدد معنى البيانات الثنائية المخزّنة (أرقام، نصوص، قيم منطقية). لغة C لغة "صارمة النوع" (Strictly typed): كل قيمة يجب أن يكون لها نوع محدد — int (عدد صحيح)، double (عدد صحيح + جزء عشري)، char (حرف)؛ لا يوجد نوع Boolean في C: صفر = false، وأي قيمة أخرى (عادة 1) = true.
+- التعليقات Comments: نص غير رسمي لا يؤثر على تنفيذ البرنامج (// للسطر، /* */ للكتلة)، تساعد المبرمجين على فهم كيفية أو لماذا يعمل الكود.
+- التعبيرات Expressions: رياضية أو منطقية، تتكون من متغيرات Variables وقيم ثابتة Literals ومؤثرات Operators (+ - * / %).
+- مؤثرات أحادية Unary (زيادة ++ ونقصان --) ومؤثرات إضافية (+= -= *= /=). مؤثرات منطقية للمقارنة (< > == <= >=) ومؤثرات بوليانية (! NOT، && AND، || OR).
+- أولويات العمليات Precedence (من الأعلى للأدنى): 1) ++ -- (postfix) 2) ++ -- (prefix) 3) ! NOT 4) * / % 5) + - 6) < <= >= > 7) == != 8) && AND 9) || OR 10) = += -= *= /=.
+- كتل الكود Code Blocks: مجموعة تعليمات بنفس المستوى، تُعرَّف بالأقواس المعقوفة { }، وتحدد نطاق رؤية المتغيرات (Scope) — مما يقلل الأخطاء ويزيد قابلية القراءة.
+
+=== مختبر لغة الأسمبلي (Assembly Language Lab) - يستخدم كِت 8086 (MTS-86C) ===
+
+التجربة 1 - مفاتيح الجهاز:
+- مفاتيح الوظائف: Reset (ينهي أي عملية ويعيد الجهاز لحالته الأولية)، النقطة "." (منهي الأوامر — عند الضغط يُنفَّذ الأمر الحالي)، الفاصلة "," (تفصل مدخلات لوحة المفاتيح وتضيف عنوانًا في LCD لبايت أو بايتين).
+- المفاتيح السداسية عشرية: EB (فحص وتعديل بايت)، EW (فحص وتعديل كلمة Word)، ER (فحص وتعديل سجل Register)، GO (تنفيذ البرنامج)، ST (تنفيذ البرنامج خطوة بخطوة).
+
+التجربة 2 - ملفات MASM وLINK:
+- ملفات MASM: كائن Object [.OBJ]، قائمة المصدر Source listing [.LST]، مرجع تقاطعي Cross-reference [.CRF].
+- ملفات LINK: Run، List، Libraries. ملاحظة: خطأ "no stack segment" غير مهم ويمكن تجاهله.
+- لاستخراج الكود الآلي: File.HEX يحتوي الكود الآلي، File.LST قائمة المصدر. الـ MASM قد يعطي Warnings (يمكن تجاوزها) أو Errors من نوع Severe (يجب أن تكون صفر).
+- خطوتان للحصول على الكود الآلي: 1) تحرير الكود المصدري (Editing) 2) تجميعه (Assembling).
+
+التجربة 3 - استخدام HyperTerminal:
+- الاتصال: اختيار رقم منفذ COM مرتفع، Bits per second = 19200، Flow control = Xon/Xoff.
+- إدخال الأوامر: L0050/L0100 لتحميل البرنامج، ثم Transfer > Send Text File لإرسال ملف Hex، بصيغة T=0100:0000.
+- الأمر [D] (Dump): يعرض الكود الآلي للبرنامج. الأمر [G] (Go): ينفذ البرنامج ويكتب النتيجة (يشمل الأعلام Flags).
+- ثلاث خطوات للحصول على الكود الآلي وتشغيله: 1) تحرير الكود المصدري 2) تجميعه 3) تحميله عبر الحاسوب (Download).
+
+التجربة 4 - المؤثرات المنطقية AND / OR / XOR:
+- AND: يُستخدم لتصفير بت معين (Clear) — أي بت AND مع 0 يصبح 0، وأي بت AND مع 1 يبقى كما هو.
+- OR: يُستخدم لتعيين بت معين (Set) — أي بت OR مع 1 يصبح 1، وأي بت OR مع 0 يبقى كما هو.
+- XOR: تنفذ عملية Exclusive-OR — إذا تشابه البتان تكون النتيجة 0، وإذا اختلفا تكون 1.
+- أمثلة عملية: تحويل حرف من كبير لصغير باستخدام OR (إضافة 32 بتعيين البت b5): MOV AL,'A' / OR AL,00100000b. تحويل من صغير لكبير باستخدام AND (تصفير البت b5): MOV AL,'a' / AND AL,11011111b. ونفس التحويلين ممكنان أيضًا باستخدام XAL,00100000b.
+
+التجربة 5 - الإزاحة والتدوير (Shift & Rotate):
+- الإزاحة المنطقية: SHL (إزاحة لليسار) وSHR (إزاحة لليمين). الإزاحة الحسابية: SAL (لليسار، مطابقة لـ SHL) وSAR (لليمين، تحافظ على تكرار bit الإشارة Sign).
+- تطبيق SHL/SAL: يضرب القيمة بـ 2^n (عدد بتات الإزاحة). تطبيق SHR: يقسم القيمة على 2^n. تطبيق SAR: يقسم مع الحفاظ على الإشارة (Sign) عبر تكرار بت الإشارة عند الإزاحة لليمين.
+- التدوير Rotate: بدون Carry: ROL (لليمين) وROR (لليسار) — لا تغيّر علم Carry Flag. مع Carry: RCL وRCR — تُدخل/تُخرج علم الـ Carry Flag ضمن عملية التدوير وتغيّره.
+- مثال عملي (Part1): MOV DL,5 ثم MOV CL,2 ثم SHL DL,CL يعطي DL = 5×2² = 14H (20 عشري).
+- مثال عملي (Part2 قسمة على 4): استخدام SAR AL,CL مع CL=2 لتنفيذ AL = AL ÷ 4.
+
+التجربة 6 - المقارنة والقفز والحلقات:
+- CMP يقارن قيمتين، ويُستخدم مع تعليمات القفز الشرطي مثل JG (Jump if Greater) للانتقال بناءً على النتيجة.
+- Loop: تعليمة تكرار تعتمد على قيمة CX (تُنقص CX تلقائيًا في كل تكرار وتستمر حتى يصبح صفرًا) — تُستخدم مثلًا لجمع عناصر مصفوفة (DB) عبر مؤشر SI مع Add وInc SI وLoop.
+
+التجربة 7 - عمليات ADD, SUB, MUL, DIV:
+- ADD: Z = X + Y (مثال: ADD AX,BX، الناتج في AX).
+- SUB: Z = X - Y (مثال: SUB AX,BX، الناتج في AX).
+- MUL: Z = X × Y، يجب أن يكون المُعامِلان (X, Y) بنفس الحجم، والناتج (Z) ضعف حجمهما ويُقسَّم بين سجلين (مثال: MUL BX يعطي AX×BX بحيث النصف الأعلى في DX والنصف الأدنى في AX). MUL يضبط أعلام Carry وOverflow إذا كان النصف الأعلى من الناتج لا يساوي صفرًا.
+- DIV: Z = X ÷ Y، يجب أن يكون شرط المقسوم عليه بنفس حجم القسمة؛ الناتج (Quotient) في AX، والباقي (Remainder) في DX.
+
+التجربة 8 - المقاطعات البرمجية (Software Interrupts):
+- تعريف: مجموعة إجراءات متاحة للمبرمج. BIOS يستخدم النوع INT 10H (الدوال 10-1A بالسداسي عشري)، وMS-DOS يستخدم INT 21H (الدوال 20-3F بالسداسي عشري).
+- INT 10H: DH=02 لكتابة قيمة AL على الشاشة بصيغة Hex، DH=04H لكتابة قيمة AX على الشاشة بصيغة Hex.
+- INT 21H: AH=00H قراءة حرف من الإدخال بدون Echo وتخزينه في AL. AH=01H قراءة حرف مع Echo وتخزينه في AL. AH=02H كتابة الحرف الموجود في DL على الشاشة بصيغة ASCII. AH=09H طباعة سلسلة نصية (String) موجودة في DS:DX على الشاشة، ويجب أن تنتهي السلسلة بالرمز '$'. AH=4CH إيقاف البرنامج.
+
+=== مختبر الدوائر الكهربائية (Electrical Circuits Lab) - قسم هندسة الحاسوب ===
+
+التجربة 1: المقاومات وأكواد الألوان (Resistors and its Color Codes)
+- الأهداف: التعرف على أنواع المقاومات، حساب قيمة المقاومة عن طريق كود الألوان، وحسابها عمليًا بجهاز الأوميتر (Ohmmeter).
+- الأجهزة: أسلاك نحاسية، مقاومات (ثابتة ومتغيرة)، جهاز المالتيميتر.
+- أهم فكرة: كل مقاومة عليها 4 ألوان؛ أول 3 ألوان تحدد قيمة المقاومة، واللون الرابع يحدد نسبة الخطأ (Tolerance).
+
+التجربة 2: قانون أوم (Ohm's Law)
+- الأهداف: تعلم توصيل دائرة كهربائية بسيطة، وفهم قانون أوم وتطبيقه العملي.
+- الأجهزة: مصدر طاقة (Power Supply)، أسلاك، مالتيميتر رقمي، مقاومة متغيرة (Resistor Box).
+- المعادلات: V = I × R ، I = V/R ، R = V/I.
+- أهم فكرة: العلاقة بين التيار والمقاومة عكسية، والعلاقة بين الجهد والتيار طردية.
+
+التجربة 3: التوصيل على التوالي والتوازي (Series and Parallel Connection of Circuit Elements)
+- الأهداف: تعلم توصيل عناصر الدائرة على التوالي والتوازي، وحساب المقاومة المكافئة والتيار والجهد ومقارنتها بالقيم النظرية.
+- الأجهزة: أسلاك، مقاومات متغيرة (Resistor Box)، مصدر طاقة، مالتيميتر.
+- المعادلات: توالي: Req = R1+R2+...+Rn (الجهد يتوزع، التيار ثابت). توازي: 1/Req = 1/R1+1/R2+...+1/Rn (الجهد ثابت، التيار يتوزع).
+- تمت الإشارة أيضًا إلى لوحة التجارب (Breadboard) واستخدامها في التوصيل.
+
+التجربة 4: قوانين كيرشوف ومبدأ التراكب (Kirchhoff's Laws & Superposition Theorem)
+- الأهداف: تعلم استخدام لوحة التجارب (Breadboard)، إثبات قانون كيرشوف للجهد والتيار (KVL, KCL) عمليًا، وفهم مبدأ التراكب وتطبيقه.
+- الأجهزة: مصدر طاقة، مالتيميترات، أسلاك، مقاومات ثابتة، لوحة تجارب (Breadboard).
+- أهم فكرة KVL: مجموع الجهود في مسار مغلق = صفر. أهم فكرة KCL: مجموع التيار الداخل للعقدة = مجموع التيار الخارج منها.
+- مبدأ التراكب: عند وجود أكثر من مصدر، نحلل تأثير كل مصدر منفردًا (نجعل مصادر الجهد قصر دائرة Short Circuit، ومصادر التيار دائرة مفتوحة Open Circuit)، ثم نجمع النتائج.
+
+التجربة 5: نظرية ثيفنين ونقل القدرة الأعظمية (Thevenin's Theorem and Maximum Power Transfer)
+- الأهداف: تعلم والتحقق من نظرية ثيفنين ونقل القدرة الأعظمية، ومعرفة علاقة نقل القدرة بالحمل (Load) في الدائرة.
+- الأجهزة: مقاومة متغيرة، صندوق مقاومات، مالتيميتر، أسلاك، مصدر طاقة.
+- أهم فكرة: أي دائرة معقدة تحتوي مصادر ومقاومات يمكن استبدالها بمصدر جهد واحد (Vth) ومقاومة واحدة على التوالي (Rth).
+- نقل القدرة الأعظمية يحدث عندما تكون مقاومة الحمل RL تساوي مقاومة ثيفنين Rth.
+`;
+
+    const labsListEn = `
+=== Introduction to IoT Course ===
+
+Section 1 - Introduction to IoT:
+- Definition: A network of connected things that can communicate data without human involvement (smart appliances, electronics, machines). IoT is a system of interrelated computing, mechanical, and digital devices/machines provided with unique identifiers (UIDs), able to transfer data over a network without requiring human-to-human or human-to-computer interaction.
+- History: 1982 first connected device (a Coca-Cola vending machine), 1991 Mark Weiser's paper on ubiquitous computing, 1993-1997 several companies proposed solutions (Microsoft's At Work, Novell's NEST), 1999 the field gains real momentum.
+- Network types: LAN (Local Area Network — communication between devices), MAN (communication between servers, larger geographic area), WAN (Wide Area Network — covers cities), PAN (Personal Area Network — devices belonging to the same person).
+- Most common IoT technology today: Patient monitors (64%), Energy meters (56%), X-rays and imaging (33%).
+
+Section 2 - Enabling Technologies:
+- Addressability: The original idea of the Auto-ID center is based on RFID tags and distinct identification through the Electronic Product Code (EPC); every device is assigned its own ID.
+- Application Layer: Protocols and a supporting framework are required to implement IoT applications (example: ADRC).
+- Short-range wireless: Bluetooth, LiFi (uses an LED transmitter, lower cost but requires line of sight and offers higher data rate than WiFi in that context), NFC, RFID (contactless scan), WiFi (802.11), ZigBee (low power consumption, low data rate, low cost, high throughput), Z-Wave (automation and security).
+- Medium-range wireless: high speed, higher throughput, lower latency, good coverage — example: 5G (supports a large number of users per device).
+- Long-range wireless: LPWAN (low power), VSAT (Very Small Aperture Terminal — satellite technology using small dish antennas for narrowband and broadband); SNR = Ps/Pn.
+- Wired technologies: Ethernet (twisted pair and fiber optic links with hubs/switches), Power Line Communication PLC (uses electrical wiring to carry power and data — e.g., HomePlug, G.hn).
+
+Section 3 - IoT Vertical Applications:
+- Consumer Applications: 1) Smart Home — home automation (heating, lighting, air conditioning); benefit: energy saving by turning lights off automatically. 2) Elder Care — keep caring for disabilities and elderly individuals.
+- Organizational Applications: 1) Medical and healthcare — data collection and analysis for research and monitoring. 2) Transportation. 3) V2X Communication (Vehicle to Everything): V2V (vehicle to vehicle), V2I (vehicle to infrastructure), V2P (vehicle to pedestrian) — V2X is the first step toward autonomous driving and connected road infrastructure.
+- Building and Home Automation: monitor and control mechanical, electrical, and electronic systems — public/private buildings, industrial, or residential.
+- Industrial Applications: 1) Manufacturing. 2) Agriculture — collecting data on temperature, rainfall, humidity, wind speed, pest infestation, and soil content to automate farming techniques, make informed decisions to improve quality/quantity, minimize risk and waste, and reduce effort (e.g., a farmer can monitor soil temperature/moisture remotely and apply IoT-acquired data to precision fertilization).
+- Infrastructure Applications: 1) Energy Management — reduce power consumption and improve production efficiency. 2) Environmental monitoring — water quality, atmospheric/soil conditions, wildlife movement/habitats. 3) Living Lab — combines research and innovation processes.
+- Military Applications: Internet of Battlefield Things — project initiated by the U.S. Army Research Laboratory (ARL) to enhance soldiers' capabilities. Ocean of Things — a program to establish an IoT across large oceans to collect, monitor, and analyze environmental and vessel activity data.
+
+Research Directions & Architecture:
+- Problems from large numbers of IoT users: 1) Network traffic causing delay. 2) Conflict (same frequency/location/time causing retransmission). Solved via Multiple Access Control: CDMA (Code), SDMA (Space), FDMA (Frequency), TDMA (Time).
+- Intelligence: can be offered at 3 levels — 1) IoT devices, 2) Edge/Fog nodes, 3) Cloud computing. The need for intelligent control/decision at each level depends on the time-sensitivity of the application (e.g., an autonomous vehicle's camera needs real-time obstacle detection to avoid an accident).
+- Architecture: IoT system architecture mainly consists of three tiers: Tier 1: Devices — sensors (reading) and actuators (acting). Tier 2: the Edge Gateway — aggregates sensor data, pre-processes it, and secures connectivity to the cloud (using systems like WebSockets, Event Hub) and in some cases provides edge analytics or fog computing. Tier 3: the Cloud — storage and advanced processing (accessed via cellular, WiFi, mobile, DSL, fibre; the gateway typically uses Thread, Bluetooth, ZigBee, NFC, etc.; "things" include sensors, actuators, IoT-enabled devices, and mesh networks).
+- Scalability: the ability of a network to add/remove users without affecting its main function. IETF's Constrained Application Protocol (CoAP), along with ZeroMQ and MQTT, play a relevant role in providing lightweight data transport; Fog Computing is a viable alternative to prevent large bursts of data flow through the internet to the cloud.
+- Size & Space Considerations: smart devices, being online (connected at the same time), sensor location, GPS, relative position (with respect to a reference/controller), and Geo Web / Digital Earth — applications that become possible when things can be organized and connected by location.
+
+Section 4 - IoT Challenges:
+1) Security: the biggest challenge — any new technology in IoT attracts attacks.
+2) Regulation: government regulation often takes a long time to catch up with the current state of technology; the lack of strong IoT regulation is a big part of why IoT remains a severe security risk, and the problem is likely to get worse as the attack surface expands to include ever more crucial devices.
+3) Compatibility: Bluetooth has long been the compatibility standard for IoT devices; for home automation, ZigBee and Z-Wave are common; continued compatibility for IoT devices also depends on the users themselves.
+4) Bandwidth: a massive number of connections may cause limitations, especially for bandwidth-intensive applications like video streaming; partial solution is intelligent switching between available mobile network operators.
+5) Energy Consumption: efforts try to increase battery age via Idle/Sleep mode (low frequency, low power) versus Normal/Full mode (high frequency, high power).
+6) Customer Expectations: businesses entering this competitive, innovative sector must be prepared for a market that never sits still and customers who always want a smoother, more advanced experience.
+
+Introduction to Programming for IoT:
+- Programming language generations: 1st (machine), 2nd (assembly), 3rd (general-purpose, e.g., C/C++, Java), 4th (specialized, e.g., Python, SQL, Matlab), 5th (more specialized, e.g., Prolog).
+- Microcontroller: a small computer typically on a single chip, used for embedded apps (e.g., an automatic irrigation system) — specific purpose, small computer, on one chip. Microprocessor: general purpose, distinct/separate parts, e.g., a smartphone or computer.
+- An oscillator generates frequency as pulses; every pulse corresponds to an instruction. Hardware is used for: 1) running actual computations (processor), 2) remembering things (memory), 3) talking to other computers (networking).
+- Interfacing with the real world happens via sensors and actuators. Software layers: 1) the processor executes the program, 2) the memory holds data including the program itself, 3) the sensors and actuators.
+- Example scenarios: 1) Smart irrigation system — multiple sensors monitor properties like temperature and humidity; past measurements are stored in memory to decide irrigation time/duration; multiple actuators start/stop irrigation; networking enables remote monitoring/control. 2) A smart parking system — multiple sensors monitor road occupancy around the city; past measurements are stored to anticipate demand for certain areas; multiple actuators signal availability (e.g., lights or large matrix displays); networking enables remote monitoring/control (e.g., posting emergency messages on displays).
+- Data types prescribe the meaning of the stored binary data: numbers, text, logical values. C is a strictly typed language — all values must have a specific type: int (integer number), double (integer + fractional part), char (a character). C doesn't define a native Boolean/logical type: zero = false, any other value (typically 1) = true.
+- Comments: informal text that doesn't affect program flow, used to help programmers understand why/how the code works (// for a line, /* */ for a block).
+- Expressions are either part of, or a full, statement; the form is mathematical or logical, and they consist of variables, literals, and operators (+, -, *, /, %).
+- Unary operators (single operand): ++ and --. Additional special (compound) operators: +=, -=, *=, /=. Logical/comparison operators: <, >, ==, <=, >=. Boolean operators: ! (NOT), && (AND), || (OR).
+- Precedence (ordering of operations), from highest to lowest: 1) ++ -- (postfix) 2) ++ -- (prefix) 3) ! NOT 4) * / % 5) + - 6) < <= >= > 7) == != 8) && AND 9) || OR 10) = += -= *= /=.
+- Code Blocks: a group of statements at the same level, defined using curly brackets { }; they limit variable visibility (scope), which reduces bugs and increases code readability/locality.
+
+=== Assembly Language Lab (using the 8086 Kit, MTS-86C) ===
+
+Experiment 1 - Function Keys:
+- Function keys: Reset (terminates any activity and returns the MTC-86C to its initial state), "." (the command terminator — pressing it executes the current command), "," (separates keypad entries, adds an address in the LCD for a 1-byte or 2-byte value).
+- Hexadecimal keys: EB (examine and edit byte), EW (examine and edit word), ER (examine and edit register), GO (execute the program), ST (execute the program step by step).
+
+Experiment 2 - MASM and LINK Files:
+- MASM files produced: Object filename [.OBJ], Source listing [.LST], Cross-reference [.CRF].
+- LINK files: Run, List, Libraries. Note: the "no stack segment" error can be safely ignored.
+- To obtain machine code: File.HEX contains the machine code, File.LST is the source listing. MASM may report Warnings (can occur) or Errors of Severe type (should be zero).
+- Two steps to obtain the machine code: 1) editing the source code, 2) assembling the source code.
+
+Experiment 3 - Using HyperTerminal:
+- Connection settings: select a high COM port number, Bits per second = 19200, Flow control = Xon/Xoff.
+- Loading a program: Input L0050/L0100, then Transfer > Send Text File to send a Hex file, in the format T=0100:0000.
+- [D] Dump command: displays the machine code of the program. [G] Go command: executes the program and writes the result (including the flags).
+- Three steps to obtain and run the machine code: 1) editing the source code, 2) assembling the source code, 3) downloading the program via the PC.
+
+Experiment 4 - Logical Instructions AND / OR / XOR:
+- AND — application: clear a bit. Any bit ANDed with 0 becomes 0; any bit ANDed with 1 stays unchanged.
+- OR — application: set a bit. Any bit ORed with 1 becomes 1; any bit ORed with 0 stays unchanged.
+- XOR — performs a Boolean exclusive-OR: if the two bits match, the result is 0; if they differ, the result is 1.
+- Worked examples: convert a capital letter to lowercase using OR (adds 32 by setting bit b5): MOV AL,'A' then OR AL,00100000b. Convert lowercase to capital using AND (clears bit b5): MOV AL,'a' then AND AL,11011111b. Both conversions can also be done with XOR AL,00100000b.
+
+Experiment 5 - Shift and Rotate:
+- Logical shifts: SHL (shift left) and SHR (shift right). Arithmetic shifts: SAL (shift left, same as SHL) and SAR (shift right, preserves the sign bit by repeating it).
+- Application of SHL/SAL: multiplies the value by 2^n (n = number of shifted bits). Application of SHR: divides the value by 2^n. Application of SAR: divides while preserving the sign, by repeating the sign bit on right shifts.
+- Rotate: without carry: ROL (rotate right/left as shown) and ROR — do not change the Carry Flag. With carry: RCL and RCR — bring the Carry Flag into/out of the rotation and do change it.
+- Worked example (Part 1): MOV DL,5 then MOV CL,2 then SHL DL,CL gives DL = 5×2² = 14H (20 decimal).
+- Worked example (Part 2, divide by 4): using SAR AL,CL with CL=2 performs AL = AL ÷ 4.
+
+Experiment 6 - Comparison, Jumps, and Loops:
+- CMP compares two values, used together with conditional jump instructions like JG (Jump if Greater) to branch based on the comparison result.
+- Loop: a repeat instruction driven by CX (CX is automatically decremented each iteration and looping continues until it reaches zero) — e.g., used to sum array elements (DB) via a SI pointer combined with ADD, INC SI, and LOOP.
+
+Experiment 7 - ADD, SUB, MUL, DIV:
+- ADD: Z = X + Y (example: ADD AX,BX, result in AX).
+- SUB: Z = X - Y (example: SUB AX,BX, result in AX).
+- MUL: Z = X × Y — the two operands (X, Y) must be the same size, and the product (Z) is twice their size, split across two registers (example: MUL BX gives AX×BX with the upper half in DX and the lower half in AX). MUL sets the Carry and Overflow flags if the upper half of the product is not equal to zero.
+- DIV: Z = X ÷ Y — the divisor and dividend must follow the same size rule; the quotient result is in AX, and the remainder is in DX.
+
+Experiment 8 - Software Interrupts:
+- Definition: a set of procedures accessible to the programmer. BIOS uses type INT 10H (functions 10-1A hex); MS-DOS uses INT 21H (functions 20-3F hex).
+- INT 10H: DH=02 writes AL to standard output (screen) in Hex format. DH=04H writes AX to standard output in Hex format.
+- INT 21H: AH=00H reads a character from standard input (keyboard) without echo, stores it in AL. AH=01H reads a character with echo, stores it in AL. AH=02H writes the character in DL to standard output in ASCII format. AH=09H outputs a string at DS:DX to the screen (the string must be terminated by '$'). AH=4CH stops the program.
+
+=== Electrical Circuits Lab — Computer Engineering Department ===
+
+Experiment 1: Resistors and its Color Codes
+- Objectives: Learn resistor types, calculate resistance using color codes, and verify using an Ohmmeter.
+- Equipment: Copper wires, resistors (fixed, variable), multimeter.
+- Key idea: A resistor has 4 color bands; the first 3 determine the resistance value, and the 4th determines the tolerance.
+
+Experiment 2: Ohm's Law
+- Objectives: Learn to configure a simple electric circuit and apply Ohm's Law practically.
+- Equipment: Power supply, wires, digital multimeter, variable resistor (Resistor Box).
+- Equations: V = I × R, I = V/R, R = V/I.
+- Key idea: Current and resistance are inversely related; voltage and current are directly related.
+
+Experiment 3: Series and Parallel Connection of Circuit Elements
+- Objectives: Learn to connect circuit elements in series and parallel, and calculate equivalent resistance, current, and voltage, comparing with theoretical values.
+- Equipment: Wires, variable resistors (Resistor Box), power supply, multimeter.
+- Equations: Series: Req = R1+R2+...+Rn (voltage divides, current constant). Parallel: 1/Req = 1/R1+1/R2+...+1/Rn (voltage constant, current divides).
+- Also covers using a Breadboard for connections.
+
+Experiment 4: Kirchhoff's Laws & Superposition Theorem
+- Objectives: Learn about the breadboard, prove KVL and KCL practically, and understand and apply the superposition principle.
+- Equipment: Power supply, multimeters, wires, fixed resistors, breadboard.
+- Key idea KVL: sum of voltages around a closed loop = 0. Key idea KCL: sum of currents into a node = sum of currents out.
+- Superposition: analyze each source's effect separately (short-circuit voltage sources, open-circuit current sources when not being analyzed), then sum results.
+
+Experiment 5: Thevenin's Theorem and Maximum Power Transfer
+- Objectives: Learn and verify Thevenin's theorem and maximum power transfer, and understand the relationship between power transfer and the load.
+- Equipment: Variable resistor, resistance box, multimeter, wires, power supply.
+- Key idea: Any complex circuit of sources and resistors can be replaced by a single voltage source (Vth) and single series resistance (Rth).
+- Maximum power transfer occurs when load resistance RL equals Thevenin resistance Rth.
+`;
+
+    if(userLang === 'ar'){
+      return `أنت "مادلي" (Madly)، المساعد الذكي لمادة Introduction to IoT ومختبر لغة الأسمبلي (Assembly Language Lab) بقسم هندسة الحاسوب. مهمتك مساعدة الطلاب في فهم محاضرات ومفاهيم مادة IoT، وحل تجارب مختبر الأسمبلي (8086) تحديدًا، بالإضافة لأي أسئلة برمجية أو هندسية عامة.
+
+لديك معرفة تفصيلية بمحتوى المادتين التاليتين، واستخدمها كمرجع أساسي عند الإجابة عن أي سؤال متعلق بهما:
+${labsListAr}
+
+تعليمات:
+- إذا سأل الطالب عن مفهوم من محاضرات IoT (مثل التقنيات اللاسلكية، التطبيقات، التحديات، أو البرمجة)، اربط إجابتك بالتفاصيل الفعلية من القائمة أعلاه.
+- إذا سأل عن تجربة من تجارب مختبر الأسمبلي، اشرح الكود والمخرجات خطوة بخطوة (بالسجلات ونظام العد الست عشري) بنفس أسلوب الأمثلة المذكورة.
+- إذا طُلب منك حل مسألة أسمبلي (مثال: SHL, SHR, AND, OR, XOR, MUL, DIV) بيّن القيمة الابتدائية والخطوات وصولاً للنتيجة النهائية بوضوح.
+- إذا سأل عن موضوع خارج هاتين المادتين، أجب بمعرفتك العامة ووضح أنه خارج محتوى هذا الفصل.
+- الأسلوب: كن مشجعاً، واضحاً، ومنظماً.
+- التنسيق: استخدم **الخط العريض** للمصطلحات المهمة، وكتل الكود للتعليمات البرمجية وأكواد الأسمبلي.
+- اللغة: أجب بالعربية دائماً.`;
+    } else {
+      return `You are "Madly", the AI mentor for the Introduction to IoT course and the Assembly Language Lab (Computer Engineering Department). Your job is to help students understand IoT lecture concepts, work through the Assembly (8086) lab experiments specifically, and answer general programming/engineering questions.
+
+You have detailed knowledge of the following course content — use it as your primary reference when answering related questions:
+${labsListEn}
+
+Instructions:
+- If a student asks about an IoT lecture concept (e.g., wireless technologies, applications, challenges, or programming basics), tie your answer to the actual details from the list above.
+- If asked about an Assembly lab experiment, walk through the code and its output step by step (registers, hex arithmetic) in the same style as the worked examples.
+- If asked to solve an Assembly problem (e.g., SHL, SHR, AND, OR, XOR, MUL, DIV), show the starting value, the steps, and the final result clearly.
+- If asked about a topic outside these two courses, answer using your general knowledge and note it's outside this term's material.
+- Style: Be encouraging, clear, and structured.
+- Formatting: Use **bold** for key terms, and code blocks for programming and assembly instructions.
+- Language: Always respond in English.`;
+    }
+  }
+
+  // ----- Image attach -----
+  attachBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      alert('الرجاء اختيار ملف صورة / Please select an image file');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      selectedImageDataUrl = reader.result;
+      imgPreviewThumb.src = selectedImageDataUrl;
+      imgPreviewRow.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  imgPreviewRemove.addEventListener('click', () => {
+    selectedImageDataUrl = null;
+    fileInput.value = '';
+    imgPreviewRow.classList.remove('show');
+  });
+
+  // ----- Voice input -----
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function updateVoiceLangBtn(){
+    voiceLangBtn.textContent = voiceLang.startsWith('ar') ? 'AR' : 'EN';
+  }
+  updateVoiceLangBtn();
+
+  voiceLangBtn.addEventListener('click', () => {
+    voiceLang = voiceLang.startsWith('ar') ? 'en-US' : 'ar-JO';
+    updateVoiceLangBtn();
+    if(recognition) recognition.lang = voiceLang;
+  });
+
+  if(SpeechRecognitionAPI){
+    recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = voiceLang;
+
+    recognition.onstart = () => {
+      recognizing = true;
+      micBtn.classList.add('active', 'recording');
+    };
+
+    recognition.onend = () => {
+      recognizing = false;
+      micBtn.classList.remove('active', 'recording');
+    };
+
+    recognition.onerror = () => {
+      recognizing = false;
+      micBtn.classList.remove('active', 'recording');
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      chatInput.value = chatInput.value ? (chatInput.value + ' ' + transcript) : transcript;
+      chatInput.focus();
+    };
+
+    micBtn.addEventListener('click', () => {
+      if(recognizing){
+        recognition.stop();
+        return;
+      }
+      recognition.lang = voiceLang;
+      try{ recognition.start(); }catch(e){ /* already started */ }
+    });
+  } else {
+    micBtn.disabled = true;
+    micBtn.title = 'الإدخال الصوتي غير مدعوم في هذا المتصفح / Voice input not supported in this browser';
+  }
+
+  async function sendMessage(){
+    const text = chatInput.value.trim();
+    const imageDataUrl = selectedImageDataUrl;
+    if(!text && !imageDataUrl) return;
+
+    const userLang = detectLanguage(text || '');
+
+    addMessage('user', text, imageDataUrl);
+
+    // Build the content sent to the API for this turn (multipart if an image is attached)
+    let apiUserContent;
+    if(imageDataUrl){
+      apiUserContent = [
+        { type: "text", text: text || (userLang === 'ar' ? "صف هذه الصورة" : "Describe this image") },
+        { type: "image_url", image_url: { url: imageDataUrl } }
+      ];
+    } else {
+      apiUserContent = text;
+    }
+
+    // Keep history lightweight: store the plain text for future context (images aren't replayed)
+    history.push({ role: 'user', content: text || (userLang === 'ar' ? "[صورة مرفقة]" : "[attached image]") });
+
+    chatInput.value = '';
+    selectedImageDataUrl = null;
+    fileInput.value = '';
+    imgPreviewRow.classList.remove('show');
+    sendBtn.disabled = true;
+    addTyping();
+
+    try{
+      const priorHistory = history.slice(0, -1).map(msg => ({ role: msg.role, content: msg.content }));
+      const messages = [
+        { role: "system", content: getSystemPrompt(userLang) },
+        ...priorHistory,
+        { role: 'user', content: apiUserContent }
+      ];
+
+      const model = imageDataUrl ? "qwen/qwen3.6-27b" : "llama-3.3-70b-versatile";
+
+      const response = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${GROQ_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: messages,
+            max_tokens: 1000,
+            temperature: 0.7
+          })
+        }
+      );
+
+      if(!response.ok){
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Error ${response.status}`);
+      }
+
+      const data = await response.json();
+      const replyText = data.choices?.[0]?.message?.content || "";
+
+      removeTyping();
+      addMessage('ai', replyText || (userLang === 'ar' ? "عذراً، لم أحصل على رد." : "Sorry, I didn't get a response."));
+      history.push({ role: 'assistant', content: replyText });
+
+    }catch(err){
+      removeTyping();
+      addMessage('ai', `خطأ: ${err.message}`);
+      console.error("Error:", err);
+    }finally{
+      sendBtn.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') sendMessage();
+  });
+</script>
+
+
+</body></html>

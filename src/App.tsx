@@ -12,6 +12,8 @@ import EditProfile from './pages/EditProfile'
 import Settings from './pages/Settings'
 import AssemblyLab from './pages/AssemblyLab'
 import CircuitLab from './pages/CircuitLab'
+import AIChat from './pages/AIChat'
+import MadlyWidget from './components/MadlyWidget'
 
 function App() {
   const [session, setSession] = useState<any>(null)
@@ -22,11 +24,9 @@ function App() {
       setSession(session)
       setLoading(false)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
@@ -50,17 +50,19 @@ function App() {
   return (
     <Router>
       <Routes>
-      <Route path="/" element={<Landing />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/lab/iot" element={<EmbeddedLab />} />
-        <Route path="/lab/network" element={<NetworkLab />} />
-        <Route path="/lab/robotics" element={<RoboticsLab />} />
-        <Route path="/lab/assembly" element={<AssemblyLab />} />
-        <Route path="/lab/circuit" element={<CircuitLab />} />
-        <Route path="/change-password" element={<ChangePassword />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/lab/iot" element={<EmbeddedLab />} />
+        <Route path="/lab/network" element={<NetworkLab />} />
+        <Route path="/lab/robotics" element={<RoboticsLab />} />
+        <Route path="/lab/assembly" element={<AssemblyLab />} />
+        <Route path="/lab/circuit" element={<CircuitLab />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/ai-chat" element={<AIChat />} />
+      </Routes>
+      <MadlyWidget />
     </Router>
   )
 }
